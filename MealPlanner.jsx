@@ -467,11 +467,23 @@ export default function MealPlanner() {
 
               {/* 장보기 */}
               <div style={{ background: "linear-gradient(135deg,#fff8f0,#fff0f8)", border: "1px solid #ffd8d0", borderRadius: 16, padding: "12px 14px", marginBottom: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#e55", marginBottom: 7 }}>🛒 {activeDay}요일 {activeMeal} 장보기 목록</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#e55", marginBottom: 4 }}>🛒 {activeDay}요일 {activeMeal} 장보기 목록</div>
+                <div style={{ fontSize: 10, color: "#bbb", marginBottom: 8 }}>재료를 클릭하면 쿠팡에서 바로 검색돼요 🛍️</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {[...new Set([meal.rice, meal.soup, ...meal.sides].flatMap(i => i?.ingredients || []))].map(ing => (
-                    <span key={ing} style={{ background: "#fff", border: "1px solid #ffc0a0", borderRadius: 8, padding: "3px 8px", fontSize: 12, color: "#e55" }}>{ing}</span>
+                    <a
+                      key={ing}
+                      href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ing)}&channel=user`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ background: "#fff", border: "1px solid #ffc0a0", borderRadius: 8, padding: "5px 10px", fontSize: 12, color: "#e55", textDecoration: "none", display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}
+                    >
+                      🛒 {ing}
+                    </a>
                   ))}
+                </div>
+                <div style={{ fontSize: 10, color: "#bbb", marginTop: 10, lineHeight: 1.6, padding: "6px 8px", background: "#fff8f0", borderRadius: 8 }}>
+                  📢 아래 재료 클릭 시 쿠팡으로 이동하며, 쿠팡파트너스 활동의 일환으로 수수료를 제공받을 수 있습니다.
                 </div>
               </div>
 
@@ -557,6 +569,17 @@ export default function MealPlanner() {
             </div>
           </div>
         )}
+
+        {/* ── 쿠팡파트너스 고지 (앱 최하단 고정) ── */}
+        <div style={{ marginTop: 24, padding: "14px 16px", background: "#f8f8f8", borderRadius: 14, border: "1px solid #eee" }}>
+          <div style={{ fontSize: 11, color: "#999", lineHeight: 1.8, textAlign: "center" }}>
+            <span style={{ fontWeight: 700, color: "#666" }}>📢 광고 수수료 고지</span><br />
+            본 앱의 장보기 목록 링크는 <strong>쿠팡파트너스</strong> 활동의 일환으로 운영되며,<br />
+            이에 따른 일정액의 수수료를 제공받을 수 있습니다.<br />
+            구매 가격은 고객님께 추가 비용 없이 동일하게 적용됩니다.
+          </div>
+        </div>
+
       </div>
     </div>
   );
