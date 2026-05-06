@@ -16,7 +16,7 @@ const INGREDIENT_GROUPS = [
   {group:"🥦 채소",items:[{n:"브로콜리",e:"🥦"},{n:"시금치",e:"🥬"},{n:"당근",e:"🥕"},{n:"양파",e:"🧅"},{n:"감자",e:"🥔"},{n:"고구마",e:"🍠"},{n:"버섯",e:"🍄"},{n:"콩나물",e:"🌱"},{n:"애호박",e:"🥒"},{n:"파프리카",e:"🫑"},{n:"토마토",e:"🍅"},{n:"대파",e:"🌿"},{n:"양배추",e:"🥬"},{n:"깻잎",e:"🌿"},{n:"단호박",e:"🎃"},{n:"가지",e:"🍆"},{n:"무",e:"⬜"},{n:"연근",e:"🌾"},{n:"우엉",e:"🌿"},{n:"아욱",e:"🌿"}]},
   {group:"🥚 단백질/유제품",items:[{n:"계란",e:"🥚"},{n:"두부",e:"⬜"},{n:"치즈",e:"🧀"},{n:"우유",e:"🥛"},{n:"요거트",e:"🫙"}]},
   {group:"🌾 곡류/면류",items:[{n:"쌀",e:"🍚"},{n:"현미",e:"🌾"},{n:"면",e:"🍝"},{n:"당면",e:"🍜"},{n:"떡",e:"🍡"}]},
-  {group:"🥬 발효식품",items:[{n:"김치",e:"🌶️"}]},
+  {group:"🧄 양념/기타",items:[{n:"김치",e:"🌶️"},{n:"된장",e:"🟤"},{n:"고추장",e:"🔴"},{n:"간장",e:"🍶"},{n:"마늘",e:"🧄"}]},
 ];
 
 const AGE_GROUPS = [
@@ -155,19 +155,7 @@ const SIDE_DB = [
 ];
 
 // ── 유틸 함수 ─────────────────────────────────────────────────────────────────
-function pickOne(db, prefs, ingreds, usedNames = [], minAgeIndex = 0, allergenIngreds = []) {
-  const base = db.filter(i => isSafeForAge(i, minAgeIndex) && isSafeForAllergy(i, allergenIngreds));
-  const unused = base.filter(i => !usedNames.includes(i.name));
-  const candidates = unused.length > 0 ? unused : base.length > 0 ? base : db.filter(i => isSafeForAge(i, minAgeIndex));
-  if (!candidates.length) return db[0];
-
-  const scored = candidates.map(item => {
-    let score = 1;
-    if (ingreds.length > 0) score += item.ingredients.filter(i => ingreds.includes(i)).length * 10;
-    if (prefs.length > 0 && item.tags.some(t => prefs.includes(t))) score += 5;
-    return { item, score };
-  });
-
+function weightedRandom(scored) {
   const total = scored.reduce((s, x) => s + x.score, 0);
   let rand = Math.random() * total;
   for (const { item, score } of scored) {
@@ -177,13 +165,36 @@ function pickOne(db, prefs, ingreds, usedNames = [], minAgeIndex = 0, allergenIn
   return scored[scored.length - 1].item;
 }
 
-function pickTwoSides(prefs, ingreds, usedNames = [], minAgeIndex = 3, allergenIngreds = []) {
-  const ageSafeP = SIDE_DB.filter(s => s.nutriType === "단백질" && isSafeForAge(s, minAgeIndex) && !usedNames.includes(s.name) && isSafeForAllergy(s, allergenIngreds));
-  const ageSafeV = SIDE_DB.filter(s => s.nutriType === "채소" && isSafeForAge(s, minAgeIndex) && !usedNames.includes(s.name) && isSafeForAllergy(s, allergenIngreds));
-  const pFinal = ageSafeP.length > 0 ? ageSafeP : SIDE_DB.filter(s => s.nutriType === "단백질" && isSafeForAge(s, minAgeIndex) && isSafeForAllergy(s, allergenIngreds));
-  const vFinal = ageSafeV.length > 0 ? ageSafeV : SIDE_DB.filter(s => s.nutriType === "채소" && isSafeForAge(s, minAgeIndex) && isSafeForAllergy(s, allergenIngreds));
-  const s1 = pFinal[Math.floor(Math.random() * pFinal.length)];
-  const s2 = vFinal.filter(s => s.name !== s1?.name)[Math.floor(Math.random() * vFinal.length)];
+function scoreItem(item, prefs, ingreds) {
+  let score = 1;
+  if (ingreds.length > 0) {
+    score += item.ingredients.filter(i => ingreds.includes(i)).length * 20;
+    if (prefs.length > 0 && item.tags.some(t => prefs.includes(t))) score += 5;
+  } else if (prefs.length > 0 && item.tags.some(t => prefs.includes(t))) {
+    score += 5;
+  }
+  return score;
+}
+
+function pickOne(db, prefs, ingreds, usedNames = [], minAgeIndex = 0, allergenIngreds = []) {
+  const base = db.filter(i => isSafeForAge(i, minAgeIndex) && isSafeForAllergy(i, allergenIngreds));
+  const unused = base.filter(i => !usedNames.includes(i.name));
+  const candidates = unused.length > 0 ? unused : base.length > 0 ? base : db.filter(i => isSafeForAge(i, minAgeIndex));
+  if (!candidates.length) return db[0];
+  return weightedRandom(candidates.map(item => ({ item, score: scoreItem(item, prefs, ingreds) })));
+}
+
+function pickTwoSides(prefs, ingreds, usedNames = [], minAgeIndex = 0, allergenIngreds = []) {
+  const baseP = SIDE_DB.filter(s => s.nutriType === "단백질" && isSafeForAge(s, minAgeIndex) && isSafeForAllergy(s, allergenIngreds));
+  const baseV = SIDE_DB.filter(s => s.nutriType === "채소"   && isSafeForAge(s, minAgeIndex) && isSafeForAllergy(s, allergenIngreds));
+  const poolP = baseP.filter(s => !usedNames.includes(s.name));
+  const poolV = baseV.filter(s => !usedNames.includes(s.name));
+  const candP = poolP.length > 0 ? poolP : baseP;
+  const candV = poolV.length > 0 ? poolV : baseV;
+  if (!candP.length && !candV.length) return [];
+  const s1 = candP.length ? weightedRandom(candP.map(item => ({ item, score: scoreItem(item, prefs, ingreds) }))) : null;
+  const candV2 = candV.filter(s => s.name !== s1?.name);
+  const s2 = candV2.length ? weightedRandom(candV2.map(item => ({ item, score: scoreItem(item, prefs, ingreds) }))) : null;
   return [s1, s2].filter(Boolean);
 }
 
