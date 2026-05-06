@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const DAYS = ["월","화","수","목","금","토","일"];
 const MEALS = ["아침","점심","저녁"];
@@ -12,11 +12,11 @@ const FOOD_PREFS = [
 
 const INGREDIENT_GROUPS = [
   {group:"🥩 육류",items:[{n:"닭고기",e:"🍗"},{n:"돼지고기",e:"🥩"},{n:"소고기",e:"🐄"},{n:"닭가슴살",e:"🍗"},{n:"삼겹살",e:"🥓"},{n:"다진고기",e:"🥩"}]},
-  {group:"🐟 해산물",items:[{n:"새우",e:"🦐"},{n:"참치",e:"🐟"},{n:"멸치",e:"🐠"},{n:"오징어",e:"🦑"},{n:"조개",e:"🦪"},{n:"연어",e:"🐡"},{n:"게맛살",e:"🦀"},{n:"전복",e:"🐚"},{n:"동태",e:"🐟"}]},
+  {group:"🐟 해산물",items:[{n:"새우",e:"🦐"},{n:"참치",e:"🐟"},{n:"멸치",e:"🐠"},{n:"오징어",e:"🦑"},{n:"조개",e:"🦪"},{n:"연어",e:"🐡"},{n:"게맛살",e:"🦀"},{n:"전복",e:"🐚"},{n:"동태",e:"🐟"},{n:"미역",e:"🌊"}]},
   {group:"🥦 채소",items:[{n:"브로콜리",e:"🥦"},{n:"시금치",e:"🥬"},{n:"당근",e:"🥕"},{n:"양파",e:"🧅"},{n:"감자",e:"🥔"},{n:"고구마",e:"🍠"},{n:"버섯",e:"🍄"},{n:"콩나물",e:"🌱"},{n:"애호박",e:"🥒"},{n:"파프리카",e:"🫑"},{n:"토마토",e:"🍅"},{n:"대파",e:"🌿"},{n:"양배추",e:"🥬"},{n:"깻잎",e:"🌿"},{n:"단호박",e:"🎃"},{n:"가지",e:"🍆"},{n:"무",e:"⬜"},{n:"연근",e:"🌾"},{n:"우엉",e:"🌿"},{n:"아욱",e:"🌿"}]},
   {group:"🥚 단백질/유제품",items:[{n:"계란",e:"🥚"},{n:"두부",e:"⬜"},{n:"치즈",e:"🧀"},{n:"우유",e:"🥛"},{n:"요거트",e:"🫙"}]},
   {group:"🌾 곡류/면류",items:[{n:"쌀",e:"🍚"},{n:"현미",e:"🌾"},{n:"면",e:"🍝"},{n:"당면",e:"🍜"},{n:"떡",e:"🍡"}]},
-  {group:"🧄 양념/기타",items:[{n:"김치",e:"🌶️"},{n:"된장",e:"🟤"},{n:"고추장",e:"🔴"},{n:"간장",e:"🍶"},{n:"마늘",e:"🧄"},{n:"미역",e:"🌊"}]},
+  {group:"🥬 발효식품",items:[{n:"김치",e:"🌶️"}]},
 ];
 
 const AGE_GROUPS = [
@@ -38,9 +38,9 @@ const ALLERGY_OPTIONS = [
 ];
 
 function getMinAgeIndex(ids) {
-  if (!ids || ids.length === 0) return 3;
+  if (!ids || ids.length === 0) return 0;
   const indices = ids.map(id => AGE_ORDER.indexOf(id)).filter(i => i >= 0);
-  return indices.length > 0 ? Math.min(...indices) : 3;
+  return indices.length > 0 ? Math.min(...indices) : 0;
 }
 
 function isSafeForAge(item, minAgeIndex) {
@@ -80,7 +80,7 @@ const RICE_DB = [
   {name:"치즈리조또",safeFor:"baby",tags:["양식/퓨전"],ingredients:["쌀","치즈","양파","버섯"],time:30,diff:"보통",cal:490,nutrition:{protein:15,calcium:180,iron:0.8,vitC:2,fiber:0.5},serving:"쌀 180g, 치즈 2장(40g), 양파 1/4개(50g), 버섯 50g, 육수 500ml, 버터 10g, 파마산 가루 10g",steps:["쌀 180g을 씻지 않고 준비한다 — 전분이 있어야 크리미해짐","양파 50g은 잘게 다지고 버섯 50g은 얇게 썬다","냄비에 버터 10g을 녹이고 양파를 투명해질 때까지 3분 볶는다","쌀을 넣고 버터가 코팅되게 2분 볶는다","뜨거운 육수를 한 국자씩 흡수될 때마다 부어가며 20분 끓인다","버섯을 넣고 2분 더 익힌다","불을 끄고 치즈 40g, 파마산 10g을 넣어 녹인다"]},
   {name:"야채죽",safeFor:"baby",tags:["죽/스프"],ingredients:["쌀","당근","양파","애호박"],time:35,diff:"쉬움",cal:220,nutrition:{protein:5,calcium:20,iron:0.5,vitC:12,fiber:1.5},serving:"쌀 90g(불린 것), 당근 30g, 양파 30g, 애호박 30g, 육수 500ml, 참기름 1작은술(5ml), 소금 1/4작은술",steps:["쌀 90g을 찬물에 30분 불린다","당근·양파·애호박을 0.3cm 크기로 잘게 다진다","냄비에 참기름 5ml를 두르고 야채를 2분 볶는다","불린 쌀을 넣고 1분 볶는다","육수 500ml를 붓고 강불로 끓인다","약불로 줄이고 뚜껑을 반쯤 열어 20분 저어가며 끓인다 — 눌어붙지 않도록 자주 저어야 함","소금으로 간을 맞춘다"]},
   {name:"닭죽",safeFor:"baby",tags:["죽/스프"],ingredients:["쌀","닭고기","마늘"],time:45,diff:"쉬움",cal:265,nutrition:{protein:20,calcium:18,iron:0.9,vitC:2,fiber:0.5},serving:"닭다리살 150g, 쌀 90g(불린 것), 마늘 3쪽(15g), 물 600ml, 국간장 1/2작은술, 참기름 1작은술",steps:["닭다리살 150g을 물 600ml, 마늘 3쪽과 함께 강불로 끓인다","끓으면 중불로 줄이고 20분 삶는다 — 거품을 걷어낸다","닭고기를 꺼내 결대로 잘게 찢어 둔다","닭 육수는 체에 걸러 깔끔하게 만든다","육수에 불린 쌀 90g을 넣고 강불로 끓인 뒤 약불 20분 저어가며 끓인다","찢은 닭고기를 넣고 5분 더 끓인다","국간장 2.5ml, 소금으로 간하고 참기름 5ml로 마무리"]},
-  {name:"단호박죽",safeFor:"baby",tags:["죽/스프"],ingredients:["고구마","쌀","우유"],time:40,diff:"쉬움",cal:245,nutrition:{protein:6,calcium:55,iron:0.8,vitC:18,fiber:2.5},serving:"단호박 200g, 쌀가루 3큰술(30g), 우유 200ml, 물 300ml, 소금 1/4작은술, 설탕 1작은술(5g)",steps:["단호박 200g을 반으로 잘라 씨를 파내고 전자레인지에 5분 익힌다","숟가락으로 속을 파내 볼에 담는다","단호박과 우유 200ml를 블렌더에 곱게 간다","냄비에 단호박 퓨레와 물 300ml를 넣고 끓인다","쌀가루 30g을 물 50ml에 풀어 넣으며 저어준다","약불에서 10분 저어가며 끓인다","소금 1g, 설탕 5g으로 간을 맞춘다"]},
+  {name:"단호박죽",safeFor:"baby",tags:["죽/스프"],ingredients:["단호박","쌀","우유"],time:40,diff:"쉬움",cal:245,nutrition:{protein:6,calcium:55,iron:0.8,vitC:18,fiber:2.5},serving:"단호박 200g, 쌀가루 3큰술(30g), 우유 200ml, 물 300ml, 소금 1/4작은술, 설탕 1작은술(5g)",steps:["단호박 200g을 반으로 잘라 씨를 파내고 전자레인지에 5분 익힌다","숟가락으로 속을 파내 볼에 담는다","단호박과 우유 200ml를 블렌더에 곱게 간다","냄비에 단호박 퓨레와 물 300ml를 넣고 끓인다","쌀가루 30g을 물 50ml에 풀어 넣으며 저어준다","약불에서 10분 저어가며 끓인다","소금 1g, 설탕 5g으로 간을 맞춘다"]},
   {name:"잔치국수",safeFor:"baby",tags:["면 요리","한식"],ingredients:["면","당근","계란"],time:20,diff:"쉬움",cal:350,nutrition:{protein:12,calcium:30,iron:1.0,vitC:5,fiber:1.5},serving:"소면 100g, 계란 1개, 당근 30g, 애호박 30g, 멸치 15g, 물 600ml, 국간장 1큰술, 소금 약간",steps:["멸치 15g의 내장을 제거하고 마른 팬에 1분 볶아 비린내를 없앤다","물 600ml와 볶은 멸치를 10분 우려 체에 거른다","당근·애호박을 채썰어 팬에 각각 1분씩 볶는다","계란을 지단 부쳐 채썬다","끓는 물에 소면 100g을 3분 삶아 찬물에 헹군다","육수에 국간장 15ml, 소금으로 간 맞춘다","그릇에 국수를 담고 뜨거운 육수를 부어 고명을 올린다"]},
   {name:"우동",safeFor:"baby",tags:["면 요리","일식"],ingredients:["면","게맛살"],time:15,diff:"쉬움",cal:380,nutrition:{protein:10,calcium:25,iron:0.8,vitC:3,fiber:1.0},serving:"우동면 200g, 게맛살 2개(60g), 대파 1/4대, 다시팩 1개, 물 500ml, 간장 1큰술(15ml)",steps:["냄비에 물 500ml와 다시팩을 넣고 3분 우린 뒤 건진다","간장 15ml, 소금으로 간한다","우동면을 표시 시간대로 삶아 건진다","게맛살 60g을 길게 찢는다","그릇에 면을 담고 뜨거운 국물을 붓는다","게맛살과 대파를 올려 완성"]},
   {name:"토마토파스타",safeFor:"baby",tags:["양식/퓨전","면 요리"],ingredients:["면","토마토","양파","마늘"],time:25,diff:"보통",cal:420,nutrition:{protein:12,calcium:35,iron:1.8,vitC:25,fiber:3.0},serving:"파스타면 100g, 토마토 2개(300g), 양파 1/4개, 마늘 2쪽, 올리브오일 1큰술(15ml), 소금, 파마산 가루 10g",steps:["파스타 100g을 소금 넣은 끓는 물에 8분 삶는다 — 면수 50ml는 따로 보관","마늘 2쪽을 얇게 슬라이스, 양파 50g은 잘게 다진다","팬에 올리브오일 15ml로 마늘을 30초 볶아 향을 낸다","양파를 3분 볶다가 토마토 300g을 넣고 10분 끓인다","삶은 파스타를 소스에 넣고 버무린다","파마산 가루 10g 뿌려 마무리"]},
@@ -103,8 +103,8 @@ const SOUP_DB = [
   {name:"시금치국",safeFor:"baby",tags:["한식","국/찌개"],ingredients:["시금치"],time:15,diff:"쉬움",cal:72,nutrition:{protein:4,calcium:95,iron:2.5,vitC:28,fiber:2.2},serving:"시금치 100g, 멸치육수 400ml, 된장 1/2큰술(7.5g), 다진마늘 1/2작은술, 국간장 약간",steps:["시금치 100g을 뿌리까지 깨끗이 씻는다","멸치육수 400ml를 냄비에 끓인다","된장 7.5g을 체에 걸러 풀어준다","다진마늘 2.5g을 넣는다","시금치를 넣고 1분 30초만 끓인다 — 오래 끓이면 영양과 색이 손실됨","국간장으로 간을 맞춘다"]},
   {name:"북엇국",safeFor:"baby",tags:["한식","국/찌개"],ingredients:["계란","두부"],time:20,diff:"쉬움",cal:125,nutrition:{protein:18,calcium:48,iron:0.7,vitC:0,fiber:0.5},serving:"북어채 30g, 계란 1개, 두부 1/8모(50g), 물 500ml, 참기름 1작은술, 국간장 1큰술, 다진마늘 1작은술",steps:["북어채 30g을 찬물에 5분 담갔다가 꼭 짠다","냄비에 참기름 5ml를 두르고 북어를 2분 볶는다","물 500ml를 넣고 끓인다","다진마늘 5g, 국간장 15ml를 넣고 중불 10분 끓인다","두부 50g을 1cm 깍뚝으로 넣고 3분 끓인다","계란 1개를 풀어 넣고 저으며 1분 익힌다"]},
   {name:"감자국",safeFor:"baby",tags:["한식","국/찌개"],ingredients:["감자","양파"],time:20,diff:"쉬움",cal:110,nutrition:{protein:3,calcium:15,iron:0.5,vitC:15,fiber:1.5},serving:"감자 1개(150g), 양파 1/4개(50g), 멸치육수 400ml, 국간장 1큰술, 다진마늘 1/2작은술",steps:["감자 150g은 1.5cm 깍뚝, 양파 50g은 1cm로 썬다","멸치육수 400ml를 끓인다","감자를 먼저 넣고 5분 끓인다","양파와 다진마늘 2.5g을 넣고 5분 더 끓인다","국간장 15ml로 간하고 소금으로 조절한다","대파를 송송 썰어 올려 완성"]},
-  {name:"무국",safeFor:"baby",tags:["한식","국/찌개"],ingredients:["소고기"],time:30,diff:"쉬움",cal:120,nutrition:{protein:8,calcium:25,iron:1.2,vitC:10,fiber:1.0},serving:"무 200g, 소고기(국거리) 80g, 물 600ml, 국간장 1.5큰술, 참기름 1작은술, 다진마늘 1작은술",steps:["소고기 80g을 채썰어 참기름 5ml에 2분 볶는다","무 200g을 2×3cm 나박 모양으로 썬다","볶은 소고기에 무를 넣고 1분 더 볶는다","물 600ml를 붓고 끓인다","국간장 22ml, 다진마늘 5g을 넣는다","중불로 무가 투명해질 때까지 15분 끓인다"]},
-  {name:"아욱국",safeFor:"baby",tags:["한식","국/찌개"],ingredients:["된장","새우"],time:20,diff:"쉬움",cal:95,nutrition:{protein:7,calcium:85,iron:1.5,vitC:18,fiber:2.8},serving:"아욱 100g, 된장 1큰술(15g), 새우 50g, 멸치육수 400ml, 다진마늘 1/2작은술",steps:["아욱 100g의 줄기 껍질을 벗기고 잎만 뜯어 씻는다","새우 50g은 껍질 벗겨 준비한다","멸치육수 400ml에 된장 15g을 체에 걸러 푼다","새우를 넣고 2분 끓인다","아욱과 다진마늘을 넣고 3분 끓인다","소금으로 간 맞추고 마무리"]},
+  {name:"무국",safeFor:"baby",tags:["한식","국/찌개"],ingredients:["무","소고기"],time:30,diff:"쉬움",cal:120,nutrition:{protein:8,calcium:25,iron:1.2,vitC:10,fiber:1.0},serving:"무 200g, 소고기(국거리) 80g, 물 600ml, 국간장 1.5큰술, 참기름 1작은술, 다진마늘 1작은술",steps:["소고기 80g을 채썰어 참기름 5ml에 2분 볶는다","무 200g을 2×3cm 나박 모양으로 썬다","볶은 소고기에 무를 넣고 1분 더 볶는다","물 600ml를 붓고 끓인다","국간장 22ml, 다진마늘 5g을 넣는다","중불로 무가 투명해질 때까지 15분 끓인다"]},
+  {name:"아욱국",safeFor:"baby",tags:["한식","국/찌개"],ingredients:["아욱","새우","된장"],time:20,diff:"쉬움",cal:95,nutrition:{protein:7,calcium:85,iron:1.5,vitC:18,fiber:2.8},serving:"아욱 100g, 된장 1큰술(15g), 새우 50g, 멸치육수 400ml, 다진마늘 1/2작은술",steps:["아욱 100g의 줄기 껍질을 벗기고 잎만 뜯어 씻는다","새우 50g은 껍질 벗겨 준비한다","멸치육수 400ml에 된장 15g을 체에 걸러 푼다","새우를 넣고 2분 끓인다","아욱과 다진마늘을 넣고 3분 끓인다","소금으로 간 맞추고 마무리"]},
   {name:"동태찌개",safeFor:"kid1",tags:["한식","국/찌개"],ingredients:["두부","콩나물"],time:25,diff:"보통",cal:145,nutrition:{protein:18,calcium:55,iron:0.9,vitC:8,fiber:1.5},serving:"동태 토막 300g, 두부 1/4모(100g), 콩나물 80g, 물 600ml, 고춧가루 1.5큰술, 다진마늘 1큰술, 국간장 1큰술",steps:["동태 토막을 찬물에 씻어 핏물을 제거한다","냄비에 물 600ml를 끓인다","고춧가루·다진마늘·국간장을 섞어 양념장을 만든다","끓는 물에 동태와 양념장을 넣고 5분 끓인다","콩나물 80g을 넣는다","두부를 2cm 깍뚝으로 넣고 5분 더 끓인다","대파·소금으로 마무리"]},
   {name:"사골국",safeFor:"baby",tags:["한식","국/찌개"],ingredients:["소고기"],time:15,diff:"쉬움",cal:180,nutrition:{protein:12,calcium:85,iron:1.0,vitC:0,fiber:0},serving:"사골국물(시판) 400ml, 소금 1/4작은술, 대파 1/4대, 후추 약간",steps:["시판 사골국물 400ml를 냄비에 붓는다","중불로 천천히 데운다","끓으면 소금으로 간을 맞춘다","대파를 어슷 썰어 올린다","후추를 살짝 뿌려 마무리","뚝배기에 담아 서빙하면 더욱 좋다"]},
   {name:"호박찌개",safeFor:"toddler",tags:["한식","국/찌개"],ingredients:["돼지고기","된장"],time:20,diff:"쉬움",cal:160,nutrition:{protein:12,calcium:35,iron:0.8,vitC:8,fiber:1.5},serving:"애호박 1개(200g), 돼지고기 다짐육 80g, 된장 1큰술(15g), 물 400ml, 고추장 1/2큰술(7.5g), 다진마늘 1작은술",steps:["애호박 200g을 0.5cm 두께 반달 모양으로 썬다","냄비에 기름 없이 다짐육 80g을 2분 볶는다","물 400ml를 붓고 끓인다","된장 15g, 고추장 7.5g을 체에 걸러 풀어준다","다진마늘과 애호박을 넣고 5분 끓인다","소금으로 간 맞추고 대파로 마무리"]},
@@ -151,20 +151,30 @@ const SIDE_DB = [
   {name:"버섯볶음",safeFor:"baby",tags:["볶음"],ingredients:["버섯","양파"],time:12,diff:"쉬움",cal:78,nutriType:"채소",nutrition:{protein:3,calcium:12,iron:0.8,vitC:4,fiber:2.5},serving:"모듬버섯 150g(팽이·느타리·새송이), 양파 1/4개(50g), 간장 1/2큰술(7.5ml), 다진마늘 1/2작은술, 참기름 1작은술, 통깨",steps:["팽이버섯은 밑동을 자르고, 느타리·새송이는 먹기 좋게 찢는다","양파 50g을 채썬다","팬에 기름 10ml를 강불로 달군다","양파를 1분 볶는다","버섯을 넣고 2분 볶는다 — 수분이 날아가도록 강불 유지","간장 7.5ml, 다진마늘로 간한다","참기름 5ml, 통깨로 마무리"]},
   {name:"오이무침",safeFor:"toddler",tags:["찜","한식"],ingredients:["양파"],time:8,diff:"쉬움",cal:45,nutriType:"채소",nutrition:{protein:1,calcium:18,iron:0.3,vitC:8,fiber:0.8},serving:"오이 1개(150g), 소금 1작은술(절임용), 고추장 1/2작은술, 식초 1작은술(5ml), 설탕 1/2작은술(2.5g), 다진마늘 1/3작은술, 참기름 1/2작은술, 통깨",steps:["오이 150g을 0.3cm 두께로 얇게 썬다","소금 5g을 넣고 10분 절인다","물기를 손으로 꼭 짠다 — 충분히 짜야 물이 생기지 않음","고추장·식초·설탕·다진마늘·참기름을 섞어 양념을 만든다","절인 오이에 양념을 넣고 무친다","통깨로 마무리 — 어린 아이는 고추장 빼고 식초·설탕만으로도 ok"]},
   {name:"깻잎나물",safeFor:"toddler",tags:["한식"],ingredients:["깻잎"],time:10,diff:"쉬움",cal:55,nutriType:"채소",nutrition:{protein:2,calcium:85,iron:2.0,vitC:16,fiber:3.0},serving:"깻잎 60g(30장), 간장 1큰술(15ml), 다진마늘 1/2작은술(2.5g), 참기름 1작은술(5ml), 통깨, 고춧가루 약간",steps:["깻잎 30장을 흐르는 물에 한 장씩 씻는다","끓는 소금물에 20초 데쳐 찬물에 헹군다","물기를 손으로 꼭 짠다","간장·다진마늘·참기름·고춧가루를 섞어 양념을 만든다","깻잎에 양념을 넣고 조물조물 무친다","통깨로 마무리"]},
-  {name:"콩조림",safeFor:"toddler",tags:["한식"],ingredients:["된장"],time:30,diff:"쉬움",cal:195,nutriType:"채소",nutrition:{protein:10,calcium:65,iron:2.5,vitC:0,fiber:5.5},serving:"검은콩(삶은 것) 100g, 간장 1.5큰술(22ml), 설탕 1큰술(10g), 물엿 1큰술(15g), 물 100ml, 참기름 1/2작은술",steps:["검은콩 100g을 물에 6시간 불린 뒤 30분 삶는다","냄비에 간장·설탕·물엿·물 100ml를 넣고 끓인다","삶은 콩을 넣고 중불에서 15분 조린다","국물이 거의 없어지면 참기름과 통깨로 마무리"]},
+  {name:"콩조림",safeFor:"toddler",tags:["한식"],ingredients:["검은콩"],time:30,diff:"쉬움",cal:195,nutriType:"채소",nutrition:{protein:10,calcium:65,iron:2.5,vitC:0,fiber:5.5},serving:"검은콩(삶은 것) 100g, 간장 1.5큰술(22ml), 설탕 1큰술(10g), 물엿 1큰술(15g), 물 100ml, 참기름 1/2작은술",steps:["검은콩 100g을 물에 6시간 불린 뒤 30분 삶는다","냄비에 간장·설탕·물엿·물 100ml를 넣고 끓인다","삶은 콩을 넣고 중불에서 15분 조린다","국물이 거의 없어지면 참기름과 통깨로 마무리"]},
 ];
 
 // ── 유틸 함수 ─────────────────────────────────────────────────────────────────
-function pickOne(db, prefs, ingreds, usedNames = [], minAgeIndex = 3, allergenIngreds = []) {
-  const ageSafe = db.filter(i => isSafeForAge(i, minAgeIndex) && !usedNames.includes(i.name) && isSafeForAllergy(i, allergenIngreds));
-  const pool = ageSafe.filter(item => {
-    const tagOk = prefs.length === 0 || item.tags.some(t => prefs.includes(t));
-    const ingOk = ingreds.length === 0 || item.ingredients.some(i => ingreds.includes(i));
-    return tagOk || ingOk;
+function pickOne(db, prefs, ingreds, usedNames = [], minAgeIndex = 0, allergenIngreds = []) {
+  const base = db.filter(i => isSafeForAge(i, minAgeIndex) && isSafeForAllergy(i, allergenIngreds));
+  const unused = base.filter(i => !usedNames.includes(i.name));
+  const candidates = unused.length > 0 ? unused : base.length > 0 ? base : db.filter(i => isSafeForAge(i, minAgeIndex));
+  if (!candidates.length) return db[0];
+
+  const scored = candidates.map(item => {
+    let score = 1;
+    if (ingreds.length > 0) score += item.ingredients.filter(i => ingreds.includes(i)).length * 10;
+    if (prefs.length > 0 && item.tags.some(t => prefs.includes(t))) score += 5;
+    return { item, score };
   });
-  const final = pool.length > 0 ? pool : ageSafe.length > 0 ? ageSafe : db.filter(i => isSafeForAge(i, minAgeIndex) && isSafeForAllergy(i, allergenIngreds));
-  if (!final.length) return db.filter(i => isSafeForAge(i, minAgeIndex))[0] || db[0];
-  return final[Math.floor(Math.random() * final.length)];
+
+  const total = scored.reduce((s, x) => s + x.score, 0);
+  let rand = Math.random() * total;
+  for (const { item, score } of scored) {
+    rand -= score;
+    if (rand <= 0) return item;
+  }
+  return scored[scored.length - 1].item;
 }
 
 function pickTwoSides(prefs, ingreds, usedNames = [], minAgeIndex = 3, allergenIngreds = []) {
@@ -228,7 +238,7 @@ function NutriBar({ label, value, goal, unit, color }) {
   );
 }
 
-function MealItemCard({ emoji, label, item, color, onRecipe }) {
+function MealItemCard({ emoji, label, item, color, onRecipe, onReplace }) {
   if (!item) return null;
   return (
     <div style={{ background: "#fff", borderRadius: 16, padding: "12px 14px", marginBottom: 8, border: `1.5px solid ${color}22`, boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}>
@@ -242,7 +252,10 @@ function MealItemCard({ emoji, label, item, color, onRecipe }) {
             <span style={{ fontSize: 11, color: "#bbb" }}>🔥 {item.cal}kcal</span>
           </div>
         </div>
-        <button onClick={onRecipe} style={{ background: color, color: "#fff", border: "none", borderRadius: 10, padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0, marginLeft: 10 }}>조리법</button>
+        <div style={{ display: "flex", gap: 5, flexShrink: 0, marginLeft: 10 }}>
+          <button onClick={onReplace} title="이 메뉴만 교체" style={{ background: "#f3f4f6", color: "#888", border: "1px solid #e5e7eb", borderRadius: 10, padding: "8px 9px", fontSize: 13, cursor: "pointer" }}>🔄</button>
+          <button onClick={onRecipe} style={{ background: color, color: "#fff", border: "none", borderRadius: 10, padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>조리법</button>
+        </div>
       </div>
     </div>
   );
@@ -261,9 +274,36 @@ export default function MealPlanner() {
   const [activeMeal, setActiveMeal] = useState("아침");
   const [viewRecipe, setViewRecipe] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showWeeklyShop, setShowWeeklyShop] = useState(false);
+  const [checkedItems, setCheckedItems] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("mp_checked") || "[]"); } catch { return []; }
+  });
 
-  const toggleArr = (setArr, val) => setArr(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
-  const mealGoal = calcMealGoal(selectedAges);
+  // LocalStorage 불러오기
+  useEffect(() => {
+    try {
+      const ages    = JSON.parse(localStorage.getItem("mp_ages")    || "[]");
+      const foods   = JSON.parse(localStorage.getItem("mp_foods")   || "[]");
+      const ingreds = JSON.parse(localStorage.getItem("mp_ingreds") || "[]");
+      const plan    = JSON.parse(localStorage.getItem("mp_weekplan")|| "null");
+      if (ages.length)    setAges(ages);
+      if (foods.length)   setFoods(foods);
+      if (ingreds.length) setIngreds(ingreds);
+      if (plan)           { setWeekPlan(plan); setStep("planner"); }
+    } catch {}
+  }, []);
+
+  // LocalStorage 자동 저장
+  useEffect(() => { localStorage.setItem("mp_ages",     JSON.stringify(selectedAges));    }, [selectedAges]);
+  useEffect(() => { localStorage.setItem("mp_foods",    JSON.stringify(selectedFoods));   }, [selectedFoods]);
+  useEffect(() => { localStorage.setItem("mp_ingreds",  JSON.stringify(selectedIngreds)); }, [selectedIngreds]);
+  useEffect(() => { if (weekPlan) localStorage.setItem("mp_weekplan", JSON.stringify(weekPlan)); }, [weekPlan]);
+  useEffect(() => { localStorage.setItem("mp_checked",  JSON.stringify(checkedItems));    }, [checkedItems]);
+
+  const toggleArr   = (setArr, val) => setArr(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+  const toggleCheck = ing => setCheckedItems(prev => prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]);
+
+  const mealGoal       = calcMealGoal(selectedAges);
   const allIngredNames = INGREDIENT_GROUPS.flatMap(g => g.items.map(x => x.n));
   const allergenIngredients = ALLERGY_OPTIONS.filter(a => selectedAllergies.includes(a.id)).flatMap(a => a.ingredients);
 
@@ -285,12 +325,32 @@ export default function MealPlanner() {
 
   const handleRegenMeal = () => {
     const minAgeIndex = getMinAgeIndex(selectedAges);
-    const rice = pickOne(RICE_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients);
-    const soup = pickOne(SOUP_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients);
+    const rice  = pickOne(RICE_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients);
+    const soup  = pickOne(SOUP_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients);
     const sides = pickTwoSides(selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients);
     setWeekPlan(prev => {
       const next = JSON.parse(JSON.stringify(prev));
       next[activeDay][activeMeal] = { rice, soup, sides };
+      return next;
+    });
+  };
+
+  const handleReplaceItem = (type) => {
+    const minAgeIndex = getMinAgeIndex(selectedAges);
+    setWeekPlan(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      const meal = next[activeDay][activeMeal];
+      if (type === "rice") {
+        meal.rice = pickOne(RICE_DB, selectedFoods, selectedIngreds, [meal.rice?.name], minAgeIndex, allergenIngredients);
+      } else if (type === "soup") {
+        meal.soup = pickOne(SOUP_DB, selectedFoods, selectedIngreds, [meal.soup?.name], minAgeIndex, allergenIngredients);
+      } else if (type === "side0") {
+        const db = SIDE_DB.filter(s => s.nutriType === "단백질");
+        meal.sides[0] = pickOne(db, selectedFoods, selectedIngreds, [meal.sides[0]?.name], minAgeIndex, allergenIngredients) || meal.sides[0];
+      } else if (type === "side1") {
+        const db = SIDE_DB.filter(s => s.nutriType === "채소");
+        meal.sides[1] = pickOne(db, selectedFoods, selectedIngreds, [meal.sides[1]?.name], minAgeIndex, allergenIngredients) || meal.sides[1];
+      }
       return next;
     });
   };
@@ -504,27 +564,60 @@ export default function MealPlanner() {
               </div>
 
               {/* 식단 구성 */}
-              <MealItemCard emoji="🍚" label="밥 / 덮밥" item={meal.rice} color="#f97316" onRecipe={() => { setViewRecipe(meal.rice); setStep("recipe"); }} />
-              <MealItemCard emoji="🍲" label="국 / 찌개" item={meal.soup} color="#3b82f6" onRecipe={() => { setViewRecipe(meal.soup); setStep("recipe"); }} />
+              <MealItemCard emoji="🍚" label="밥 / 덮밥" item={meal.rice} color="#f97316" onRecipe={() => { setViewRecipe(meal.rice); setStep("recipe"); }} onReplace={() => handleReplaceItem("rice")} />
+              <MealItemCard emoji="🍲" label="국 / 찌개" item={meal.soup} color="#3b82f6" onRecipe={() => { setViewRecipe(meal.soup); setStep("recipe"); }} onReplace={() => handleReplaceItem("soup")} />
               {meal.sides.map((side, i) => (
-                <MealItemCard key={i} emoji="🥗" label={`반찬 ${i + 1} (${side.nutriType})`} item={side} color={i === 0 ? "#8b5cf6" : "#22c55e"} onRecipe={() => { setViewRecipe(side); setStep("recipe"); }} />
+                <MealItemCard key={i} emoji="🥗" label={`반찬 ${i + 1} (${side.nutriType})`} item={side} color={i === 0 ? "#8b5cf6" : "#22c55e"} onRecipe={() => { setViewRecipe(side); setStep("recipe"); }} onReplace={() => handleReplaceItem(`side${i}`)} />
               ))}
 
               {/* 장보기 */}
               <div style={{ background: "linear-gradient(135deg,#fff8f0,#fff0f8)", border: "1px solid #ffd8d0", borderRadius: 16, padding: "12px 14px", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#e55" }}>🛒 {activeDay}요일 {activeMeal} 장보기 목록</div>
-                  <div style={{ fontSize: 10, color: "#bbb" }}>클릭 시 쿠팡 검색</div>
+                  <div style={{ fontSize: 10, color: "#bbb" }}>클릭 시 쿠팡 로켓프레시</div>
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                   {[...new Set([meal.rice, meal.soup, ...meal.sides].flatMap(i => i?.ingredients || []))].map(ing => (
-                    <a key={ing} href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ing)}&isPriorityMobileWeb=true`} target="_blank" rel="noreferrer" style={{ background: "#fff", border: "1px solid #ffc0a0", borderRadius: 8, padding: "4px 9px", fontSize: 12, color: "#e55", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
-                      {ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
+                    <a key={ing} href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ing + " 로켓프레시")}&channel=user&isPriorityMobileWeb=true`} target="_blank" rel="noreferrer"
+                      onClick={e => { e.preventDefault(); toggleCheck(ing); window.open(e.currentTarget.href, "_blank"); }}
+                      style={{ background: checkedItems.includes(ing) ? "#f0fdf4" : "#fff", border: `1px solid ${checkedItems.includes(ing) ? "#86efac" : "#ffc0a0"}`, borderRadius: 8, padding: "4px 9px", fontSize: 12, color: checkedItems.includes(ing) ? "#16a34a" : "#e55", textDecoration: checkedItems.includes(ing) ? "line-through" : "none", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
+                      {checkedItems.includes(ing) ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
                     </a>
                   ))}
                 </div>
+                {checkedItems.length > 0 && (
+                  <button onClick={() => setCheckedItems([])} style={{ marginTop: 7, fontSize: 10, color: "#bbb", background: "none", border: "none", cursor: "pointer", padding: 0 }}>✕ 체크 전체 해제</button>
+                )}
                 <div style={{ marginTop: 8, fontSize: 10, color: "#ddd", borderTop: "1px dashed #fde8d8", paddingTop: 7 }}>※ 쿠팡 파트너스 링크는 추후 적용 예정</div>
               </div>
+
+              {/* 주간 전체 장보기 */}
+              <button onClick={() => setShowWeeklyShop(v => !v)} style={{ width: "100%", padding: "11px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: showWeeklyShop ? "#fff7ed" : "#fff", color: "#f97316", border: "2px solid #fed7aa", cursor: "pointer", fontFamily: "inherit", marginBottom: 8 }}>
+                📋 {showWeeklyShop ? "주간 장보기 목록 닫기" : "주간 전체 장보기 목록 보기"}
+              </button>
+              {showWeeklyShop && (() => {
+                const allIngs = [...new Set(DAYS.flatMap(d => MEALS.flatMap(m => {
+                  const ml = weekPlan[d][m];
+                  return [ml.rice, ml.soup, ...ml.sides].flatMap(i => i?.ingredients || []);
+                })))];
+                return (
+                  <div style={{ background: "linear-gradient(135deg,#fffbeb,#fff7ed)", border: "1px solid #fed7aa", borderRadius: 16, padding: "12px 14px", marginBottom: 10 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#c2410c", marginBottom: 8 }}>📋 이번 주 전체 재료 ({allIngs.length}가지)</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                      {allIngs.map(ing => (
+                        <a key={ing} href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ing + " 로켓프레시")}&channel=user&isPriorityMobileWeb=true`} target="_blank" rel="noreferrer"
+                          onClick={e => { e.preventDefault(); toggleCheck(ing); window.open(e.currentTarget.href, "_blank"); }}
+                          style={{ background: checkedItems.includes(ing) ? "#f0fdf4" : "#fff", border: `1px solid ${checkedItems.includes(ing) ? "#86efac" : "#fed7aa"}`, borderRadius: 8, padding: "4px 9px", fontSize: 12, color: checkedItems.includes(ing) ? "#16a34a" : "#c2410c", textDecoration: checkedItems.includes(ing) ? "line-through" : "none", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
+                          {checkedItems.includes(ing) ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
+                        </a>
+                      ))}
+                    </div>
+                    {checkedItems.length > 0 && (
+                      <button onClick={() => setCheckedItems([])} style={{ marginTop: 7, fontSize: 10, color: "#bbb", background: "none", border: "none", cursor: "pointer", padding: 0 }}>✕ 체크 전체 해제</button>
+                    )}
+                  </div>
+                );
+              })()}
 
               <button onClick={handleRegenMeal} style={{ width: "100%", padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "#fff", color: "#ff6b6b", border: "2px solid #ff6b6b", cursor: "pointer", fontFamily: "inherit" }}>🔄 이 끼니 다시 뽑기</button>
             </div>
