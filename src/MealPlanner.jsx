@@ -512,12 +512,18 @@ export default function MealPlanner() {
 
               {/* 장보기 */}
               <div style={{ background: "linear-gradient(135deg,#fff8f0,#fff0f8)", border: "1px solid #ffd8d0", borderRadius: 16, padding: "12px 14px", marginBottom: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#e55", marginBottom: 7 }}>🛒 {activeDay}요일 {activeMeal} 장보기 목록</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#e55" }}>🛒 {activeDay}요일 {activeMeal} 장보기 목록</div>
+                  <div style={{ fontSize: 10, color: "#bbb" }}>클릭 시 쿠팡 검색</div>
+                </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                   {[...new Set([meal.rice, meal.soup, ...meal.sides].flatMap(i => i?.ingredients || []))].map(ing => (
-                    <span key={ing} style={{ background: "#fff", border: "1px solid #ffc0a0", borderRadius: 8, padding: "3px 8px", fontSize: 12, color: "#e55" }}>{ing}</span>
+                    <a key={ing} href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ing)}`} target="_blank" rel="noreferrer" style={{ background: "#fff", border: "1px solid #ffc0a0", borderRadius: 8, padding: "4px 9px", fontSize: 12, color: "#e55", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
+                      {ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
+                    </a>
                   ))}
                 </div>
+                <div style={{ marginTop: 8, fontSize: 10, color: "#ddd", borderTop: "1px dashed #fde8d8", paddingTop: 7 }}>※ 쿠팡 파트너스 링크는 추후 적용 예정</div>
               </div>
 
               <button onClick={handleRegenMeal} style={{ width: "100%", padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "#fff", color: "#ff6b6b", border: "2px solid #ff6b6b", cursor: "pointer", fontFamily: "inherit" }}>🔄 이 끼니 다시 뽑기</button>
