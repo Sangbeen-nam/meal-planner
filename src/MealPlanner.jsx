@@ -518,7 +518,7 @@ export default function MealPlanner() {
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                   {[...new Set([meal.rice, meal.soup, ...meal.sides].flatMap(i => i?.ingredients || []))].map(ing => (
-                    <a key={ing} href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ing)}`} target="_blank" rel="noreferrer" style={{ background: "#fff", border: "1px solid #ffc0a0", borderRadius: 8, padding: "4px 9px", fontSize: 12, color: "#e55", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
+                    <a key={ing} href={`https://www.coupang.com/np/search?q=${encodeURIComponent(ing)}&isPriorityMobileWeb=true`} target="_blank" rel="noreferrer" style={{ background: "#fff", border: "1px solid #ffc0a0", borderRadius: 8, padding: "4px 9px", fontSize: 12, color: "#e55", textDecoration: "none", display: "flex", alignItems: "center", gap: 3 }}>
                       {ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
                     </a>
                   ))}
