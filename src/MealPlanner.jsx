@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DAYS, MEALS, FOOD_PREFS, INGREDIENT_GROUPS, AGE_GROUPS, ALLERGY_OPTIONS } from "./data/constants";
 import { calcMealGoal, fmtN } from "./utils/nutrition";
 import { getMinAgeIndex, generateWeekPlan, pickOne, pickTwoSides, handleReplaceItem } from "./utils/mealPicker";
@@ -10,14 +10,42 @@ import { RecipeView } from "./components/RecipeView";
 import { ShoppingList } from "./components/ShoppingList";
 import PrivacyPolicy from "./components/PrivacyPolicy.jsx";
 
+const ONBOARDING_SLIDES = [
+  {
+    emoji: "👶",
+    title: "연령대 선택",
+    desc: "아이 나이를 선택하면\n연령에 맞는 안전한 식단만 나와요",
+  },
+  {
+    emoji: "🥦",
+    title: "냉장고 재료 활용",
+    desc: "있는 재료를 선택하면\n그 재료가 들어간 메뉴를\n우선으로 추천해요",
+  },
+  {
+    emoji: "🍱",
+    title: "식단 자동 생성",
+    desc: "요일·끼니별로 식단을 확인하고\n마음에 안 들면 🔄 버튼으로\n바로 바꿀 수 있어요",
+  },
+  {
+    emoji: "🛒",
+    title: "장보기 목록",
+    desc: "필요한 재료를 한눈에 확인하고\n클릭 한 번으로 바로 구매할 수 있어요",
+  },
+];
+
 export default function MealPlanner() {
-  const [step, setStep] = useState("pref");
-  const [selectedAges, setAges] = useState([]);
-  const [selectedFoods, setFoods] = useState([]);
-  const [selectedIngreds, setIngreds] = useState([]);
+  const [step, setStep] = useState(() => {
+    try {
+      const plan = JSON.parse(localStorage.getItem("mp_weekplan") || "null");
+      return plan ? "planner" : "pref";
+    } catch { return "pref"; }
+  });
+  const [selectedAges, setAges] = useState(() => { try { return JSON.parse(localStorage.getItem("mp_ages") || "[]"); } catch { return []; } });
+  const [selectedFoods, setFoods] = useState(() => { try { return JSON.parse(localStorage.getItem("mp_foods") || "[]"); } catch { return []; } });
+  const [selectedIngreds, setIngreds] = useState(() => { try { return JSON.parse(localStorage.getItem("mp_ingreds") || "[]"); } catch { return []; } });
   const [selectedAllergies, setAllergies] = useState([]);
   const [customInput, setCustomInput] = useState("");
-  const [weekPlan, setWeekPlan] = useState(null);
+  const [weekPlan, setWeekPlan] = useState(() => { try { return JSON.parse(localStorage.getItem("mp_weekplan") || "null"); } catch { return null; } });
   const [activeDay, setActiveDay] = useState("월");
   const [activeMeal, setActiveMeal] = useState("아침");
   const [viewRecipe, setViewRecipe] = useState(null);
@@ -26,28 +54,27 @@ export default function MealPlanner() {
   const [checkedItems, setCheckedItems] = useState(() => {
     try { return JSON.parse(localStorage.getItem("mp_checked") || "[]"); } catch { return []; }
   });
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("mp_onboarding_done"));
+  const [onboardingSlide, setOnboardingSlide] = useState(0);
 
-  useEffect(() => {
-    try {
-      const ages    = JSON.parse(localStorage.getItem("mp_ages")    || "[]");
-      const foods   = JSON.parse(localStorage.getItem("mp_foods")   || "[]");
-      const ingreds = JSON.parse(localStorage.getItem("mp_ingreds") || "[]");
-      const plan    = JSON.parse(localStorage.getItem("mp_weekplan")|| "null");
-      if (ages.length)    setAges(ages);
-      if (foods.length)   setFoods(foods);
-      if (ingreds.length) setIngreds(ingreds);
-      if (plan)           { setWeekPlan(plan); setStep("planner"); }
-    } catch {}
-  }, []);
+  const saveAll = (ages, foods, ingreds, plan, checked) => {
+    localStorage.setItem("mp_ages",     JSON.stringify(ages));
+    localStorage.setItem("mp_foods",    JSON.stringify(foods));
+    localStorage.setItem("mp_ingreds",  JSON.stringify(ingreds));
+    if (plan) localStorage.setItem("mp_weekplan", JSON.stringify(plan));
+    localStorage.setItem("mp_checked",  JSON.stringify(checked));
+  };
 
-  useEffect(() => { localStorage.setItem("mp_ages",     JSON.stringify(selectedAges));    }, [selectedAges]);
-  useEffect(() => { localStorage.setItem("mp_foods",    JSON.stringify(selectedFoods));   }, [selectedFoods]);
-  useEffect(() => { localStorage.setItem("mp_ingreds",  JSON.stringify(selectedIngreds)); }, [selectedIngreds]);
-  useEffect(() => { if (weekPlan) localStorage.setItem("mp_weekplan", JSON.stringify(weekPlan)); }, [weekPlan]);
-  useEffect(() => { localStorage.setItem("mp_checked",  JSON.stringify(checkedItems));    }, [checkedItems]);
-
-  const toggleArr   = (setArr, val) => setArr(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
-  const toggleCheck = ing => setCheckedItems(prev => prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]);
+  const toggleArr   = (setArr, val, key) => setArr(prev => {
+    const next = prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val];
+    if (key) localStorage.setItem(key, JSON.stringify(next));
+    return next;
+  });
+  const toggleCheck = ing => setCheckedItems(prev => {
+    const next = prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing];
+    localStorage.setItem("mp_checked", JSON.stringify(next));
+    return next;
+  });
 
   const mealGoal = calcMealGoal(selectedAges);
   const allIngredNames = INGREDIENT_GROUPS.flatMap(g => g.items.map(x => x.n));
@@ -56,14 +83,22 @@ export default function MealPlanner() {
   const handleAddCustom = () => {
     const t = customInput.trim();
     if (!t) return;
-    if (!selectedIngreds.includes(t)) setIngreds(prev => [...prev, t]);
+    if (!selectedIngreds.includes(t)) {
+      setIngreds(prev => {
+        const next = [...prev, t];
+        localStorage.setItem("mp_ingreds", JSON.stringify(next));
+        return next;
+      });
+    }
     setCustomInput("");
   };
 
   const handleGenerate = () => {
     setLoading(true);
     setTimeout(() => {
-      setWeekPlan(generateWeekPlan(selectedFoods, selectedIngreds, selectedAges, allergenIngredients));
+      const plan = generateWeekPlan(selectedFoods, selectedIngreds, selectedAges, allergenIngredients);
+      setWeekPlan(plan);
+      localStorage.setItem("mp_weekplan", JSON.stringify(plan));
       setStep("planner");
       setLoading(false);
     }, 900);
@@ -74,20 +109,100 @@ export default function MealPlanner() {
     const rice  = pickOne(RICE_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients);
     const soup  = pickOne(SOUP_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients);
     const sides = pickTwoSides(selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients);
-    setWeekPlan(prev => { const next = JSON.parse(JSON.stringify(prev)); next[activeDay][activeMeal] = { rice, soup, sides }; return next; });
+    setWeekPlan(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      next[activeDay][activeMeal] = { rice, soup, sides };
+      localStorage.setItem("mp_weekplan", JSON.stringify(next));
+      return next;
+    });
   };
 
   const onReplaceItem = (type) => {
     const minAgeIndex = getMinAgeIndex(selectedAges);
-    setWeekPlan(prev => handleReplaceItem(prev, activeDay, activeMeal, type, selectedFoods, selectedIngreds, minAgeIndex, allergenIngredients));
+    setWeekPlan(prev => {
+      const next = handleReplaceItem(prev, activeDay, activeMeal, type, selectedFoods, selectedIngreds, minAgeIndex, allergenIngredients);
+      localStorage.setItem("mp_weekplan", JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const finishOnboarding = () => {
+    localStorage.setItem("mp_onboarding_done", "1");
+    setShowOnboarding(false);
+    setOnboardingSlide(0);
+  };
+
+  const openHelp = () => {
+    setOnboardingSlide(0);
+    setShowOnboarding(true);
   };
 
   const ms = m => m === "아침" ? { bg: "#fffbeb", badge: "#fde68a", text: "#92400e", icon: "🌅" }
     : m === "점심" ? { bg: "#f0fdf4", badge: "#bbf7d0", text: "#14532d", icon: "☀️" }
     : { bg: "#eff6ff", badge: "#bfdbfe", text: "#1e3a8a", icon: "🌙" };
 
+  const renderOnboarding = () => {
+    const slide = ONBOARDING_SLIDES[onboardingSlide];
+    const isLast  = onboardingSlide === ONBOARDING_SLIDES.length - 1;
+    const isFirst = onboardingSlide === 0;
+    return (
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "#fff", zIndex: 1000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 28px", fontFamily: "Georgia, serif" }}>
+        <button
+          onClick={finishOnboarding}
+          style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", color: "#ccc", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
+        >
+          건너뛰기
+        </button>
+
+        <div style={{ fontSize: 64, marginBottom: 28, lineHeight: 1 }}>{slide.emoji}</div>
+
+        <div style={{ fontSize: 18, fontWeight: 700, color: "#ff6b6b", marginBottom: 16, textAlign: "center" }}>
+          {slide.title}
+        </div>
+
+        <div style={{ fontSize: 13, color: "#999", textAlign: "center", lineHeight: 2.1, whiteSpace: "pre-line" }}>
+          {slide.desc}
+        </div>
+
+        <div style={{ display: "flex", gap: 8, marginTop: 40, marginBottom: 28 }}>
+          {ONBOARDING_SLIDES.map((_, i) => (
+            <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: i === onboardingSlide ? "#ff6b6b" : "#e0e0e0", transition: "background 0.2s" }} />
+          ))}
+        </div>
+
+        {isLast ? (
+          <button
+            onClick={finishOnboarding}
+            style={{ width: "100%", maxWidth: 280, padding: "16px", borderRadius: 20, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", fontSize: 17, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(255,107,107,0.35)" }}
+          >
+            시작하기!
+          </button>
+        ) : (
+          <div style={{ display: "flex", gap: 10, width: "100%", maxWidth: 280 }}>
+            {!isFirst && (
+              <button
+                onClick={() => setOnboardingSlide(prev => prev - 1)}
+                style={{ flex: 1, padding: "13px", borderRadius: 16, background: "#f5f5f5", color: "#bbb", border: "none", fontSize: 14, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}
+              >
+                이전
+              </button>
+            )}
+            <button
+              onClick={() => setOnboardingSlide(prev => prev + 1)}
+              style={{ flex: 1, padding: "13px", borderRadius: 16, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+            >
+              다음
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(150deg,#fff8f2 0%,#ffecd8 40%,#f8f0ff 100%)", fontFamily: "Georgia, serif" }}>
+      {showOnboarding && renderOnboarding()}
+
       <div style={{ background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", padding: "14px 16px 10px", boxShadow: "0 4px 20px rgba(255,107,107,0.28)", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 22 }}>🍱</span>
@@ -95,11 +210,28 @@ export default function MealPlanner() {
             <div style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>우리 아이 주간 식단표</div>
             <div style={{ color: "rgba(255,255,255,0.82)", fontSize: 11 }}>밥 · 국 · 반찬 2가지 균형 식단</div>
           </div>
-          {step !== "pref" && (
-            <button onClick={() => setStep("pref")} style={{ marginLeft: "auto", background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 11px", fontSize: 11, cursor: "pointer" }}>⚙️ 설정</button>
-          )}
+          <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+            <button onClick={openHelp} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 11px", fontSize: 11, cursor: "pointer" }}>❓</button>
+            {step !== "pref" && (
+              <button onClick={() => setStep("pref")} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 11px", fontSize: 11, cursor: "pointer" }}>⚙️ 설정</button>
+            )}
+          </div>
         </div>
       </div>
+
+      {(step === "planner" || step === "recipe") && (
+        <div style={{ background: "#fff", borderBottom: "1px solid #f0f0f0", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <button
+            onClick={() => setStep("pref")}
+            style={{ background: "none", border: "none", color: "#ff6b6b", fontSize: 13, cursor: "pointer", fontFamily: "inherit", fontWeight: 600, padding: 0 }}
+          >
+            ← 설정으로
+          </button>
+          <div style={{ fontSize: 12, color: "#bbb" }}>
+            {step === "planner" ? `${activeDay}요일 ${activeMeal}` : "조리법"}
+          </div>
+        </div>
+      )}
 
       <div style={{ padding: "14px 12px 60px" }}>
         {step === "pref" && (
@@ -111,7 +243,7 @@ export default function MealPlanner() {
                 {AGE_GROUPS.map(g => {
                   const sel = selectedAges.includes(g.id);
                   return (
-                    <button key={g.id} onClick={() => toggleArr(setAges, g.id)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px", borderRadius: 14, cursor: "pointer", fontFamily: "inherit", textAlign: "left", background: sel ? `${g.color}28` : "#fafafa", border: sel ? `2px solid ${g.color}` : "2px solid #f0f0f0", transition: "all 0.15s" }}>
+                    <button key={g.id} onClick={() => toggleArr(setAges, g.id, "mp_ages")} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 13px", borderRadius: 14, cursor: "pointer", fontFamily: "inherit", textAlign: "left", background: sel ? `${g.color}28` : "#fafafa", border: sel ? `2px solid ${g.color}` : "2px solid #f0f0f0", transition: "all 0.15s" }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, background: sel ? g.color : "#eee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{g.emoji}</div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: sel ? "#444" : "#888" }}>{g.label} <span style={{ fontSize: 11, fontWeight: 400, color: "#bbb" }}>({g.range})</span></div>
@@ -161,7 +293,7 @@ export default function MealPlanner() {
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 10 }}>여러 개 선택 가능 · 없으면 전체 반영</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
                 {FOOD_PREFS.map(f => (
-                  <button key={f.id} onClick={() => toggleArr(setFoods, f.id)} style={{ padding: "7px 11px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: selectedFoods.includes(f.id) ? "#ff6b6b" : "#fff8f0", color: selectedFoods.includes(f.id) ? "#fff" : "#999", border: selectedFoods.includes(f.id) ? "1px solid #ff6b6b" : "1px solid #eee", fontWeight: selectedFoods.includes(f.id) ? 700 : 400 }}>{f.e} {f.id}</button>
+                  <button key={f.id} onClick={() => toggleArr(setFoods, f.id, "mp_foods")} style={{ padding: "7px 11px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: selectedFoods.includes(f.id) ? "#ff6b6b" : "#fff8f0", color: selectedFoods.includes(f.id) ? "#fff" : "#999", border: selectedFoods.includes(f.id) ? "1px solid #ff6b6b" : "1px solid #eee", fontWeight: selectedFoods.includes(f.id) ? 700 : 400 }}>{f.e} {f.id}</button>
                 ))}
               </div>
             </div>
@@ -174,7 +306,7 @@ export default function MealPlanner() {
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", marginBottom: 7 }}>{grp.group}</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {grp.items.map(item => (
-                      <button key={item.n} onClick={() => toggleArr(setIngreds, item.n)} style={{ padding: "6px 10px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: selectedIngreds.includes(item.n) ? "#ff8e53" : "#fff8f0", color: selectedIngreds.includes(item.n) ? "#fff" : "#999", border: selectedIngreds.includes(item.n) ? "1px solid #ff8e53" : "1px solid #eee", fontWeight: selectedIngreds.includes(item.n) ? 700 : 400 }}>{item.e} {item.n}</button>
+                      <button key={item.n} onClick={() => toggleArr(setIngreds, item.n, "mp_ingreds")} style={{ padding: "6px 10px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: selectedIngreds.includes(item.n) ? "#ff8e53" : "#fff8f0", color: selectedIngreds.includes(item.n) ? "#fff" : "#999", border: selectedIngreds.includes(item.n) ? "1px solid #ff8e53" : "1px solid #eee", fontWeight: selectedIngreds.includes(item.n) ? 700 : 400 }}>{item.e} {item.n}</button>
                     ))}
                   </div>
                 </div>
@@ -189,7 +321,7 @@ export default function MealPlanner() {
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
                     {selectedIngreds.filter(i => !allIngredNames.includes(i)).map(i => (
                       <span key={i} style={{ background: "#fff0e8", border: "1px solid #ff8e53", borderRadius: 20, padding: "4px 10px", fontSize: 12, color: "#ff8e53", display: "flex", alignItems: "center", gap: 4 }}>
-                        {i}<button onClick={() => setIngreds(prev => prev.filter(v => v !== i))} style={{ background: "none", border: "none", color: "#ff8e53", cursor: "pointer", fontSize: 12, padding: 0 }}>×</button>
+                        {i}<button onClick={() => setIngreds(prev => { const next = prev.filter(v => v !== i); localStorage.setItem("mp_ingreds", JSON.stringify(next)); return next; })} style={{ background: "none", border: "none", color: "#ff8e53", cursor: "pointer", fontSize: 12, padding: 0 }}>×</button>
                       </span>
                     ))}
                   </div>
@@ -203,7 +335,7 @@ export default function MealPlanner() {
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                   {selectedIngreds.map(i => (
                     <span key={i} style={{ background: "#fff", border: "1px solid #ffc0a0", borderRadius: 8, padding: "3px 9px", fontSize: 11, color: "#e55", display: "flex", alignItems: "center", gap: 3 }}>
-                      {i}<button onClick={() => setIngreds(prev => prev.filter(v => v !== i))} style={{ background: "none", border: "none", color: "#ffb0a0", cursor: "pointer", fontSize: 11, padding: 0 }}>×</button>
+                      {i}<button onClick={() => setIngreds(prev => { const next = prev.filter(v => v !== i); localStorage.setItem("mp_ingreds", JSON.stringify(next)); return next; })} style={{ background: "none", border: "none", color: "#ffb0a0", cursor: "pointer", fontSize: 11, padding: 0 }}>×</button>
                     </span>
                   ))}
                 </div>
