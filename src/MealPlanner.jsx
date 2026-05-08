@@ -8,6 +8,7 @@ import { NutriBar } from "./components/NutriBar";
 import { MealItemCard } from "./components/MealItemCard";
 import { RecipeView } from "./components/RecipeView";
 import { ShoppingList } from "./components/ShoppingList";
+import PrivacyPolicy, { ContactSection } from "./components/PrivacyPolicy.jsx";
 
 export default function MealPlanner() {
   const [step, setStep] = useState("pref");
@@ -278,6 +279,20 @@ export default function MealPlanner() {
         })()}
 
         {step === "recipe" && <RecipeView item={viewRecipe} onBack={() => setStep("planner")} />}
+
+        {step === "privacy" && <PrivacyPolicy onBack={() => setStep("pref")} />}
+
+        {step !== "privacy" && (
+          <div style={{ marginTop: 20 }}>
+            <ContactSection />
+            <button
+              onClick={() => setStep("privacy")}
+              style={{ display: "block", width: "100%", marginTop: 10, padding: "11px 0", borderRadius: 14, background: "#fff", color: "#aaa", border: "1px solid #eee", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}
+            >
+              개인정보처리방침
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
