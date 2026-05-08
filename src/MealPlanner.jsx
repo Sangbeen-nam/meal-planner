@@ -8,7 +8,7 @@ import { NutriBar } from "./components/NutriBar";
 import { MealItemCard } from "./components/MealItemCard";
 import { RecipeView } from "./components/RecipeView";
 import { ShoppingList } from "./components/ShoppingList";
-import PrivacyPolicy, { ContactSection } from "./components/PrivacyPolicy.jsx";
+import PrivacyPolicy from "./components/PrivacyPolicy.jsx";
 
 export default function MealPlanner() {
   const [step, setStep] = useState("pref");
@@ -283,14 +283,29 @@ export default function MealPlanner() {
         {step === "privacy" && <PrivacyPolicy onBack={() => setStep("pref")} />}
 
         {step !== "privacy" && (
-          <div style={{ marginTop: 20 }}>
-            <ContactSection />
-            <button
-              onClick={() => setStep("privacy")}
-              style={{ display: "block", width: "100%", marginTop: 10, padding: "11px 0", borderRadius: 14, background: "#fff", color: "#aaa", border: "1px solid #eee", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}
-            >
-              개인정보처리방침
-            </button>
+          <div style={{ marginTop: 20, background: "#fff", borderRadius: 14, overflow: "hidden", border: "1px solid #eee" }}>
+            <div style={{ padding: "7px 12px", borderBottom: "1px solid #eee" }}>
+              <p style={{ fontSize: 10, color: "#ccc", lineHeight: 1.7, margin: 0 }}>
+                이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
+              </p>
+            </div>
+            <div style={{ display: "flex" }}>
+              <button
+                onClick={() => setStep("privacy")}
+                style={{ flex: 1, padding: "12px 8px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}
+              >
+                <div style={{ fontSize: 16, marginBottom: 3 }}>📋</div>
+                <div style={{ fontSize: 11, color: "#999", fontWeight: 600 }}>개인정보처리방침</div>
+              </button>
+              <a
+                href="mailto:skatkdqla173123@gmail.com"
+                style={{ flex: 1, padding: "12px 8px", background: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "center", textDecoration: "none", display: "block" }}
+              >
+                <div style={{ fontSize: 16, marginBottom: 3 }}>💬</div>
+                <div style={{ fontSize: 11, color: "#999", fontWeight: 600 }}>문의하기</div>
+                <div style={{ fontSize: 10, color: "#bbb", marginTop: 2, lineHeight: 1.4 }}>궁금한 점이 있으시면 편하게 문의해주세요 😊</div>
+              </a>
+            </div>
           </div>
         )}
       </div>
