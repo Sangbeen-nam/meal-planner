@@ -72,13 +72,14 @@ export function pickTwoSides(prefs, ingreds, usedNames = [], minAgeIndex = 0, al
   return [s1, s2].filter(Boolean);
 }
 
-export function generateWeekPlan(prefs, ingreds, selectedAgeIds = [], allergenIngreds = [], avoidedIngreds = []) {
+export function generateWeekPlan(prefs, ingreds, selectedAgeIds = [], allergenIngreds = [], avoidedIngreds = [], selectedMeals = ["아침","점심","저녁"]) {
   const minAgeIndex = getMinAgeIndex(selectedAgeIds);
+  const mealsToGen = selectedMeals.length > 0 ? selectedMeals : MEALS;
   const plan = {};
   const usedRice = [], usedSoup = [], usedSides = [];
   DAYS.forEach(day => {
     plan[day] = {};
-    MEALS.forEach(m => {
+    mealsToGen.forEach(m => {
       const rice  = pickOne(RICE_DB, prefs, ingreds, usedRice,  minAgeIndex, allergenIngreds, avoidedIngreds);
       const soup  = pickOne(SOUP_DB, prefs, ingreds, usedSoup,  minAgeIndex, allergenIngreds, avoidedIngreds);
       const sides = pickTwoSides(prefs, ingreds, usedSides, minAgeIndex, allergenIngreds, avoidedIngreds);
