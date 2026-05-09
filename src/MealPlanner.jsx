@@ -11,60 +11,72 @@ import { ShoppingList } from "./components/ShoppingList";
 import PrivacyPolicy from "./components/PrivacyPolicy.jsx";
 
 const ONBOARDING_SLIDES = [
-  {
-    emoji: "👶",
-    title: "연령대 선택",
-    desc: "아이 나이를 선택하면\n연령에 맞는 안전한 식단만 나와요",
-  },
-  {
-    emoji: "🥦",
-    title: "냉장고 재료 활용",
-    desc: "있는 재료를 선택하면\n그 재료가 들어간 메뉴를\n우선으로 추천해요",
-  },
-  {
-    emoji: "🍱",
-    title: "식단 자동 생성",
-    desc: "요일·끼니별로 식단을 확인하고\n마음에 안 들면 🔄 버튼으로\n바로 바꿀 수 있어요",
-  },
-  {
-    emoji: "🛒",
-    title: "장보기 목록",
-    desc: "필요한 재료를 한눈에 확인하고\n클릭 한 번으로 바로 구매할 수 있어요",
-  },
+  { emoji: "👶", title: "연령대 선택",    desc: "아이 나이를 선택하면\n연령에 맞는 안전한 식단만 나와요" },
+  { emoji: "🥦", title: "냉장고 재료 활용", desc: "있는 재료를 선택하면\n그 재료가 들어간 메뉴를\n우선으로 추천해요" },
+  { emoji: "🍱", title: "식단 자동 생성",  desc: "요일·끼니별로 식단을 확인하고\n마음에 안 들면 🔄 버튼으로\n바로 바꿀 수 있어요" },
+  { emoji: "🛒", title: "장보기 목록",    desc: "필요한 재료를 한눈에 확인하고\n클릭 한 번으로 바로 구매할 수 있어요" },
 ];
 
+const CHILD_LABELS = ["첫째", "둘째", "셋째"];
+
+function calcAgeFromBirth(year, month) {
+  if (!year || !month) return null;
+  const y = parseInt(year), m = parseInt(month);
+  if (isNaN(y) || isNaN(m) || y < 2000 || y > 2030 || m < 1 || m > 12) return null;
+  const now = new Date();
+  let age = now.getFullYear() - y;
+  if (now.getMonth() + 1 < m) age--;
+  return age >= 0 ? age : null;
+}
+
+function ageGroupFromAge(age) {
+  if (age === null || age === undefined) return null;
+  if (age <= 2)  return "baby";
+  if (age <= 5)  return "toddler";
+  if (age <= 8)  return "kid1";
+  if (age <= 11) return "kid2";
+  return "teen";
+}
+
 export default function MealPlanner() {
+  // ── core state ──────────────────────────────────────────────────────────
   const [step, setStep] = useState(() => {
-    try {
-      const plan = JSON.parse(localStorage.getItem("mp_weekplan") || "null");
-      return plan ? "planner" : "pref";
-    } catch { return "pref"; }
+    try { return JSON.parse(localStorage.getItem("mp_weekplan") || "null") ? "planner" : "pref"; }
+    catch { return "pref"; }
   });
-  const [selectedAges, setAges] = useState(() => { try { return JSON.parse(localStorage.getItem("mp_ages") || "[]"); } catch { return []; } });
-  const [selectedFoods, setFoods] = useState(() => { try { return JSON.parse(localStorage.getItem("mp_foods") || "[]"); } catch { return []; } });
+  const [selectedAges,  setAges]      = useState(() => { try { return JSON.parse(localStorage.getItem("mp_ages")    || "[]"); } catch { return []; } });
+  const [selectedFoods, setFoods]     = useState(() => { try { return JSON.parse(localStorage.getItem("mp_foods")   || "[]"); } catch { return []; } });
   const [selectedIngreds, setIngreds] = useState(() => { try { return JSON.parse(localStorage.getItem("mp_ingreds") || "[]"); } catch { return []; } });
   const [selectedAllergies, setAllergies] = useState([]);
-  const [customInput, setCustomInput] = useState("");
-  const [weekPlan, setWeekPlan] = useState(() => { try { return JSON.parse(localStorage.getItem("mp_weekplan") || "null"); } catch { return null; } });
-  const [activeDay, setActiveDay] = useState("월");
-  const [activeMeal, setActiveMeal] = useState("아침");
-  const [viewRecipe, setViewRecipe] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [customInput,   setCustomInput]   = useState("");
+  const [weekPlan,      setWeekPlan]      = useState(() => { try { return JSON.parse(localStorage.getItem("mp_weekplan") || "null"); } catch { return null; } });
+  const [activeDay,     setActiveDay]     = useState("월");
+  const [activeMeal,    setActiveMeal]    = useState("아침");
+  const [viewRecipe,    setViewRecipe]    = useState(null);
+  const [loading,       setLoading]       = useState(false);
   const [showWeeklyShop, setShowWeeklyShop] = useState(false);
-  const [checkedItems, setCheckedItems] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("mp_checked") || "[]"); } catch { return []; }
-  });
-  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("mp_onboarding_done"));
+  const [checkedItems,  setCheckedItems]  = useState(() => { try { return JSON.parse(localStorage.getItem("mp_checked") || "[]"); } catch { return []; } });
+
+  // ── onboarding state ─────────────────────────────────────────────────────
+  const [showOnboarding,  setShowOnboarding]  = useState(() => !localStorage.getItem("mp_onboarding_done"));
   const [onboardingSlide, setOnboardingSlide] = useState(0);
 
-  const saveAll = (ages, foods, ingreds, plan, checked) => {
-    localStorage.setItem("mp_ages",     JSON.stringify(ages));
-    localStorage.setItem("mp_foods",    JSON.stringify(foods));
-    localStorage.setItem("mp_ingreds",  JSON.stringify(ingreds));
-    if (plan) localStorage.setItem("mp_weekplan", JSON.stringify(plan));
-    localStorage.setItem("mp_checked",  JSON.stringify(checked));
-  };
+  // ── profile state ─────────────────────────────────────────────────────────
+  const [profiles,       setProfiles]       = useState(() => { try { return JSON.parse(localStorage.getItem("mp_profiles") || "[]"); } catch { return []; } });
+  const [profileTab,     setProfileTab]     = useState(0);
+  const [editBirthYear,  setEditBirthYear]  = useState(() => { try { return JSON.parse(localStorage.getItem("mp_profiles") || "[]")[0]?.birthYear  || ""; } catch { return ""; } });
+  const [editBirthMonth, setEditBirthMonth] = useState(() => { try { return JSON.parse(localStorage.getItem("mp_profiles") || "[]")[0]?.birthMonth || ""; } catch { return ""; } });
+  const [editAllergies,  setEditAllergies]  = useState(() => { try { return JSON.parse(localStorage.getItem("mp_profiles") || "[]")[0]?.allergies      || []; } catch { return []; } });
+  const [editAvoids,     setEditAvoids]     = useState(() => { try { return JSON.parse(localStorage.getItem("mp_profiles") || "[]")[0]?.avoidedIngreds  || []; } catch { return []; } });
+  const [editFoodPrefs,  setEditFoodPrefs]  = useState(() => { try { return JSON.parse(localStorage.getItem("mp_profiles") || "[]")[0]?.foodPrefs       || []; } catch { return []; } });
 
+  // ── derived ───────────────────────────────────────────────────────────────
+  const avoidedIngreds     = profiles.filter(Boolean).flatMap(p => p.avoidedIngreds || []);
+  const allergenIngredients = ALLERGY_OPTIONS.filter(a => selectedAllergies.includes(a.id)).flatMap(a => a.ingredients);
+  const mealGoal           = calcMealGoal(selectedAges);
+  const allIngredNames     = INGREDIENT_GROUPS.flatMap(g => g.items.map(x => x.n));
+
+  // ── helpers ───────────────────────────────────────────────────────────────
   const toggleArr   = (setArr, val, key) => setArr(prev => {
     const next = prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val];
     if (key) localStorage.setItem(key, JSON.stringify(next));
@@ -76,19 +88,205 @@ export default function MealPlanner() {
     return next;
   });
 
-  const mealGoal = calcMealGoal(selectedAges);
-  const allIngredNames = INGREDIENT_GROUPS.flatMap(g => g.items.map(x => x.n));
-  const allergenIngredients = ALLERGY_OPTIONS.filter(a => selectedAllergies.includes(a.id)).flatMap(a => a.ingredients);
+  // ── onboarding ────────────────────────────────────────────────────────────
+  const finishOnboarding = () => {
+    localStorage.setItem("mp_onboarding_done", "1");
+    setShowOnboarding(false);
+    setOnboardingSlide(0);
+  };
 
+  const renderOnboarding = () => {
+    const slide  = ONBOARDING_SLIDES[onboardingSlide];
+    const isLast  = onboardingSlide === ONBOARDING_SLIDES.length - 1;
+    const isFirst = onboardingSlide === 0;
+    return (
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "#fff", zIndex: 1000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 28px", fontFamily: "Georgia, serif" }}>
+        <button onClick={finishOnboarding} style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", color: "#ccc", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>건너뛰기</button>
+        <div style={{ fontSize: 64, marginBottom: 28, lineHeight: 1 }}>{slide.emoji}</div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: "#ff6b6b", marginBottom: 16, textAlign: "center" }}>{slide.title}</div>
+        <div style={{ fontSize: 13, color: "#999", textAlign: "center", lineHeight: 2.1, whiteSpace: "pre-line" }}>{slide.desc}</div>
+        <div style={{ display: "flex", gap: 8, marginTop: 40, marginBottom: 28 }}>
+          {ONBOARDING_SLIDES.map((_, i) => (
+            <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: i === onboardingSlide ? "#ff6b6b" : "#e0e0e0", transition: "background 0.2s" }} />
+          ))}
+        </div>
+        {isLast ? (
+          <button onClick={finishOnboarding} style={{ width: "100%", maxWidth: 280, padding: "16px", borderRadius: 20, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", fontSize: 17, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(255,107,107,0.35)" }}>시작하기!</button>
+        ) : (
+          <div style={{ display: "flex", gap: 10, width: "100%", maxWidth: 280 }}>
+            {!isFirst && (
+              <button onClick={() => setOnboardingSlide(p => p - 1)} style={{ flex: 1, padding: "13px", borderRadius: 16, background: "#f5f5f5", color: "#bbb", border: "none", fontSize: 14, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>이전</button>
+            )}
+            <button onClick={() => setOnboardingSlide(p => p + 1)} style={{ flex: 1, padding: "13px", borderRadius: 16, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>다음</button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ── profile logic ─────────────────────────────────────────────────────────
+  const applyAllProfiles = (allProfiles) => {
+    const filled = allProfiles.filter(Boolean);
+    if (!filled.length) return;
+    const ages  = [...new Set(filled.map(p => ageGroupFromAge(calcAgeFromBirth(p.birthYear, p.birthMonth))).filter(Boolean))];
+    const algys = [...new Set(filled.flatMap(p => p.allergies     || []))];
+    const foods = [...new Set(filled.flatMap(p => p.foodPrefs     || []))];
+    if (ages.length)  { setAges(ages);   localStorage.setItem("mp_ages",  JSON.stringify(ages));  }
+    setAllergies(algys);
+    if (foods.length) { setFoods(foods); localStorage.setItem("mp_foods", JSON.stringify(foods)); }
+  };
+
+  const loadProfileIntoEdit = (idx, allProfiles) => {
+    const p = allProfiles[idx];
+    setEditBirthYear(p?.birthYear  || "");
+    setEditBirthMonth(p?.birthMonth || "");
+    setEditAllergies(p?.allergies     || []);
+    setEditAvoids(p?.avoidedIngreds   || []);
+    setEditFoodPrefs(p?.foodPrefs     || []);
+  };
+
+  const handleProfileTabClick = (idx) => {
+    setProfileTab(idx);
+    loadProfileIntoEdit(idx, profiles);
+    if (profiles[idx]) applyAllProfiles(profiles);
+  };
+
+  const handleAddProfileTab = () => {
+    const idx = profiles.length;
+    setProfileTab(idx);
+    setEditBirthYear(""); setEditBirthMonth("");
+    setEditAllergies([]); setEditAvoids([]); setEditFoodPrefs([]);
+  };
+
+  const handleProfileSave = () => {
+    const profile = {
+      birthYear:      editBirthYear,
+      birthMonth:     editBirthMonth,
+      allergies:      editAllergies,
+      avoidedIngreds: editAvoids,
+      foodPrefs:      editFoodPrefs,
+    };
+    const next = [...profiles];
+    next[profileTab] = profile;
+    setProfiles(next);
+    localStorage.setItem("mp_profiles", JSON.stringify(next));
+    applyAllProfiles(next);
+  };
+
+  // computed display values for current edit
+  const editAge      = calcAgeFromBirth(editBirthYear, editBirthMonth);
+  const editAgeGroup = ageGroupFromAge(editAge);
+  const editAgeLabel = editAge !== null
+    ? `만 ${editAge}세 (${AGE_GROUPS.find(g => g.id === editAgeGroup)?.label || ""})`
+    : "";
+
+  const renderProfileCard = () => (
+    <div style={{ background: "#fff", borderRadius: 18, padding: 16, marginBottom: 12, boxShadow: "0 2px 14px rgba(255,107,107,0.08)", border: "1.5px solid #ffd0b0" }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#e55", marginBottom: 10 }}>👶 아이 프로필</div>
+
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+        {profiles.map((_, i) => (
+          <button key={i} onClick={() => handleProfileTabClick(i)} style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", background: profileTab === i ? "#ff6b6b" : "#fff", color: profileTab === i ? "#fff" : "#aaa", border: profileTab === i ? "1.5px solid #ff6b6b" : "1.5px solid #eee" }}>
+            {CHILD_LABELS[i]}
+          </button>
+        ))}
+        {profiles.length < 3 && (
+          <button onClick={handleAddProfileTab} style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", background: profileTab === profiles.length ? "#ff6b6b" : "#fff8f0", color: profileTab === profiles.length ? "#fff" : "#ff8e53", border: profileTab === profiles.length ? "1.5px solid #ff6b6b" : "1.5px dashed #ff8e53" }}>
+            + 추가
+          </button>
+        )}
+      </div>
+
+      {/* Birth date */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", marginBottom: 7 }}>📅 생년월일</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <input
+            value={editBirthYear}
+            onChange={e => setEditBirthYear(e.target.value.replace(/\D/g, "").slice(0, 4))}
+            placeholder="2021" maxLength={4}
+            style={{ width: 68, padding: "8px 10px", borderRadius: 10, border: "1.5px solid #ffd0b0", fontSize: 14, fontFamily: "inherit", textAlign: "center", outline: "none", background: "#fff8f0", color: "#444" }}
+          />
+          <span style={{ fontSize: 12, color: "#bbb" }}>년</span>
+          <input
+            value={editBirthMonth}
+            onChange={e => setEditBirthMonth(e.target.value.replace(/\D/g, "").slice(0, 2))}
+            placeholder="03" maxLength={2}
+            style={{ width: 50, padding: "8px 10px", borderRadius: 10, border: "1.5px solid #ffd0b0", fontSize: 14, fontFamily: "inherit", textAlign: "center", outline: "none", background: "#fff8f0", color: "#444" }}
+          />
+          <span style={{ fontSize: 12, color: "#bbb" }}>월</span>
+          {editAgeLabel && (
+            <span style={{ fontSize: 12, color: "#ff6b6b", fontWeight: 700, background: "#fff0ee", borderRadius: 10, padding: "3px 9px", border: "1px solid #ffccc8" }}>{editAgeLabel}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Allergies */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", marginBottom: 7 }}>⚠️ 알레르기</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+          {ALLERGY_OPTIONS.map(a => {
+            const sel = editAllergies.includes(a.id);
+            return (
+              <button key={a.id} onClick={() => setEditAllergies(prev => prev.includes(a.id) ? prev.filter(x => x !== a.id) : [...prev, a.id])}
+                style={{ padding: "6px 12px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: sel ? "#fee2e2" : "#fff8f0", color: sel ? "#dc2626" : "#999", border: sel ? "1.5px solid #dc2626" : "1px solid #eee", fontWeight: sel ? 700 : 400 }}>
+                {a.emoji} {a.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Avoided ingredients */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", marginBottom: 7 }}>🙅 기피 재료 <span style={{ fontSize: 10, fontWeight: 400, color: "#ccc" }}>선택하면 해당 재료 포함 메뉴 제외</span></div>
+        <div style={{ maxHeight: 160, overflowY: "auto", display: "flex", flexWrap: "wrap", gap: 5, padding: "8px", border: "1px solid #f0f0f0", borderRadius: 12, background: "#fafafa" }}>
+          {INGREDIENT_GROUPS.flatMap(grp => grp.items).map(item => {
+            const sel = editAvoids.includes(item.n);
+            return (
+              <button key={item.n} onClick={() => setEditAvoids(prev => prev.includes(item.n) ? prev.filter(x => x !== item.n) : [...prev, item.n])}
+                style={{ padding: "4px 9px", borderRadius: 16, fontSize: 11, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, background: sel ? "#fef3c7" : "#fff", color: sel ? "#b45309" : "#ccc", border: sel ? "1.5px solid #d97706" : "1px solid #eee", fontWeight: sel ? 700 : 400 }}>
+                {item.e} {item.n}
+              </button>
+            );
+          })}
+        </div>
+        {editAvoids.length > 0 && (
+          <div style={{ marginTop: 6, fontSize: 11, color: "#d97706", fontWeight: 700 }}>
+            🚫 기피: {editAvoids.join(", ")}
+          </div>
+        )}
+      </div>
+
+      {/* Food prefs */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", marginBottom: 7 }}>🍽️ 선호 음식</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+          {FOOD_PREFS.map(f => {
+            const sel = editFoodPrefs.includes(f.id);
+            return (
+              <button key={f.id} onClick={() => setEditFoodPrefs(prev => prev.includes(f.id) ? prev.filter(x => x !== f.id) : [...prev, f.id])}
+                style={{ padding: "6px 11px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: sel ? "#ff6b6b" : "#fff8f0", color: sel ? "#fff" : "#999", border: sel ? "1px solid #ff6b6b" : "1px solid #eee", fontWeight: sel ? 700 : 400 }}>
+                {f.e} {f.id}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <button onClick={handleProfileSave} style={{ width: "100%", padding: "12px", borderRadius: 12, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 12px rgba(255,107,107,0.28)" }}>
+        💾 프로필 저장
+      </button>
+    </div>
+  );
+
+  // ── generation handlers ───────────────────────────────────────────────────
   const handleAddCustom = () => {
     const t = customInput.trim();
     if (!t) return;
     if (!selectedIngreds.includes(t)) {
-      setIngreds(prev => {
-        const next = [...prev, t];
-        localStorage.setItem("mp_ingreds", JSON.stringify(next));
-        return next;
-      });
+      setIngreds(prev => { const next = [...prev, t]; localStorage.setItem("mp_ingreds", JSON.stringify(next)); return next; });
     }
     setCustomInput("");
   };
@@ -96,7 +294,7 @@ export default function MealPlanner() {
   const handleGenerate = () => {
     setLoading(true);
     setTimeout(() => {
-      const plan = generateWeekPlan(selectedFoods, selectedIngreds, selectedAges, allergenIngredients);
+      const plan = generateWeekPlan(selectedFoods, selectedIngreds, selectedAges, allergenIngredients, avoidedIngreds);
       setWeekPlan(plan);
       localStorage.setItem("mp_weekplan", JSON.stringify(plan));
       setStep("planner");
@@ -106,9 +304,9 @@ export default function MealPlanner() {
 
   const handleRegenMeal = () => {
     const minAgeIndex = getMinAgeIndex(selectedAges);
-    const rice  = pickOne(RICE_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients);
-    const soup  = pickOne(SOUP_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients);
-    const sides = pickTwoSides(selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients);
+    const rice  = pickOne(RICE_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
+    const soup  = pickOne(SOUP_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
+    const sides = pickTwoSides(selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
     setWeekPlan(prev => {
       const next = JSON.parse(JSON.stringify(prev));
       next[activeDay][activeMeal] = { rice, soup, sides };
@@ -120,89 +318,22 @@ export default function MealPlanner() {
   const onReplaceItem = (type) => {
     const minAgeIndex = getMinAgeIndex(selectedAges);
     setWeekPlan(prev => {
-      const next = handleReplaceItem(prev, activeDay, activeMeal, type, selectedFoods, selectedIngreds, minAgeIndex, allergenIngredients);
+      const next = handleReplaceItem(prev, activeDay, activeMeal, type, selectedFoods, selectedIngreds, minAgeIndex, allergenIngredients, avoidedIngreds);
       localStorage.setItem("mp_weekplan", JSON.stringify(next));
       return next;
     });
-  };
-
-  const finishOnboarding = () => {
-    localStorage.setItem("mp_onboarding_done", "1");
-    setShowOnboarding(false);
-    setOnboardingSlide(0);
-  };
-
-  const openHelp = () => {
-    setOnboardingSlide(0);
-    setShowOnboarding(true);
   };
 
   const ms = m => m === "아침" ? { bg: "#fffbeb", badge: "#fde68a", text: "#92400e", icon: "🌅" }
     : m === "점심" ? { bg: "#f0fdf4", badge: "#bbf7d0", text: "#14532d", icon: "☀️" }
     : { bg: "#eff6ff", badge: "#bfdbfe", text: "#1e3a8a", icon: "🌙" };
 
-  const renderOnboarding = () => {
-    const slide = ONBOARDING_SLIDES[onboardingSlide];
-    const isLast  = onboardingSlide === ONBOARDING_SLIDES.length - 1;
-    const isFirst = onboardingSlide === 0;
-    return (
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "#fff", zIndex: 1000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 28px", fontFamily: "Georgia, serif" }}>
-        <button
-          onClick={finishOnboarding}
-          style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", color: "#ccc", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
-        >
-          건너뛰기
-        </button>
-
-        <div style={{ fontSize: 64, marginBottom: 28, lineHeight: 1 }}>{slide.emoji}</div>
-
-        <div style={{ fontSize: 18, fontWeight: 700, color: "#ff6b6b", marginBottom: 16, textAlign: "center" }}>
-          {slide.title}
-        </div>
-
-        <div style={{ fontSize: 13, color: "#999", textAlign: "center", lineHeight: 2.1, whiteSpace: "pre-line" }}>
-          {slide.desc}
-        </div>
-
-        <div style={{ display: "flex", gap: 8, marginTop: 40, marginBottom: 28 }}>
-          {ONBOARDING_SLIDES.map((_, i) => (
-            <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: i === onboardingSlide ? "#ff6b6b" : "#e0e0e0", transition: "background 0.2s" }} />
-          ))}
-        </div>
-
-        {isLast ? (
-          <button
-            onClick={finishOnboarding}
-            style={{ width: "100%", maxWidth: 280, padding: "16px", borderRadius: 20, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", fontSize: 17, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(255,107,107,0.35)" }}
-          >
-            시작하기!
-          </button>
-        ) : (
-          <div style={{ display: "flex", gap: 10, width: "100%", maxWidth: 280 }}>
-            {!isFirst && (
-              <button
-                onClick={() => setOnboardingSlide(prev => prev - 1)}
-                style={{ flex: 1, padding: "13px", borderRadius: 16, background: "#f5f5f5", color: "#bbb", border: "none", fontSize: 14, cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}
-              >
-                이전
-              </button>
-            )}
-            <button
-              onClick={() => setOnboardingSlide(prev => prev + 1)}
-              style={{ flex: 1, padding: "13px", borderRadius: 16, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
-            >
-              다음
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  };
-
+  // ── render ────────────────────────────────────────────────────────────────
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(150deg,#fff8f2 0%,#ffecd8 40%,#f8f0ff 100%)", fontFamily: "Georgia, serif" }}>
       {showOnboarding && renderOnboarding()}
 
+      {/* Header */}
       <div style={{ background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", padding: "14px 16px 10px", boxShadow: "0 4px 20px rgba(255,107,107,0.28)", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 22 }}>🍱</span>
@@ -211,7 +342,7 @@ export default function MealPlanner() {
             <div style={{ color: "rgba(255,255,255,0.82)", fontSize: 11 }}>밥 · 국 · 반찬 2가지 균형 식단</div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
-            <button onClick={openHelp} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 11px", fontSize: 11, cursor: "pointer" }}>❓</button>
+            <button onClick={() => { setOnboardingSlide(0); setShowOnboarding(true); }} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 11px", fontSize: 11, cursor: "pointer" }}>❓</button>
             {step !== "pref" && (
               <button onClick={() => setStep("pref")} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 11px", fontSize: 11, cursor: "pointer" }}>⚙️ 설정</button>
             )}
@@ -219,23 +350,21 @@ export default function MealPlanner() {
         </div>
       </div>
 
+      {/* Back bar */}
       {(step === "planner" || step === "recipe") && (
         <div style={{ background: "#fff", borderBottom: "1px solid #f0f0f0", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <button
-            onClick={() => setStep("pref")}
-            style={{ background: "none", border: "none", color: "#ff6b6b", fontSize: 13, cursor: "pointer", fontFamily: "inherit", fontWeight: 600, padding: 0 }}
-          >
-            ← 설정으로
-          </button>
-          <div style={{ fontSize: 12, color: "#bbb" }}>
-            {step === "planner" ? `${activeDay}요일 ${activeMeal}` : "조리법"}
-          </div>
+          <button onClick={() => setStep("pref")} style={{ background: "none", border: "none", color: "#ff6b6b", fontSize: 13, cursor: "pointer", fontFamily: "inherit", fontWeight: 600, padding: 0 }}>← 설정으로</button>
+          <div style={{ fontSize: 12, color: "#bbb" }}>{step === "planner" ? `${activeDay}요일 ${activeMeal}` : "조리법"}</div>
         </div>
       )}
 
       <div style={{ padding: "14px 12px 60px" }}>
         {step === "pref" && (
           <div>
+            {/* ── Profile card ── */}
+            {renderProfileCard()}
+
+            {/* ── 연령 선택 ── */}
             <div style={{ background: "#fff", borderRadius: 18, padding: 16, marginBottom: 12, boxShadow: "0 2px 14px rgba(255,107,107,0.08)", border: "1px solid #ffe4e0" }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#e55", marginBottom: 2 }}>👶 자녀 연령대 선택</div>
               <div style={{ fontSize: 11, color: "#bbb", marginBottom: 12 }}>여러 명이면 모두 선택 · 연령에 맞지 않는 매운·짠·딱딱한 음식은 자동 제외돼요</div>
@@ -271,6 +400,7 @@ export default function MealPlanner() {
               )}
             </div>
 
+            {/* ── 알레르기 ── */}
             <div style={{ background: "#fff", borderRadius: 18, padding: 16, marginBottom: 12, boxShadow: "0 2px 14px rgba(239,68,68,0.08)", border: "1.5px solid #fecaca" }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#dc2626", marginBottom: 2 }}>⚠️ 알레르기 재료 선택</div>
               <div style={{ fontSize: 11, color: "#bbb", marginBottom: 10 }}>선택한 재료가 포함된 메뉴는 식단에서 자동 제외돼요</div>
@@ -288,6 +418,7 @@ export default function MealPlanner() {
               )}
             </div>
 
+            {/* ── 선호 음식 ── */}
             <div style={{ background: "#fff", borderRadius: 18, padding: 16, marginBottom: 12, boxShadow: "0 2px 14px rgba(255,107,107,0.07)", border: "1px solid #ffe4e0" }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#e55", marginBottom: 2 }}>🍽️ 선호 음식 종류</div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 10 }}>여러 개 선택 가능 · 없으면 전체 반영</div>
@@ -298,6 +429,7 @@ export default function MealPlanner() {
               </div>
             </div>
 
+            {/* ── 냉장고 재료 ── */}
             <div style={{ background: "#fff", borderRadius: 18, padding: 16, marginBottom: 12, boxShadow: "0 2px 14px rgba(255,107,107,0.07)", border: "1px solid #ffe4e0" }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#e55", marginBottom: 2 }}>🥦 냉장고 재료 선택</div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 12 }}>카테고리별로 있는 재료를 골라주세요</div>
@@ -339,6 +471,13 @@ export default function MealPlanner() {
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {avoidedIngreds.length > 0 && (
+              <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 14, padding: "10px 14px", marginBottom: 12, display: "flex", gap: 8, alignItems: "center" }}>
+                <span style={{ fontSize: 16 }}>🙅</span>
+                <div style={{ fontSize: 11, color: "#b45309", fontWeight: 700 }}>기피 재료 제외 중: {[...new Set(avoidedIngreds)].join(", ")}</div>
               </div>
             )}
 
@@ -427,17 +566,11 @@ export default function MealPlanner() {
             </div>
             <div style={{ background: "#fff", borderRadius: 14, overflow: "hidden", border: "1px solid #eee" }}>
               <div style={{ display: "flex" }}>
-                <button
-                  onClick={() => setStep("privacy")}
-                  style={{ flex: 1, padding: "12px 8px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}
-                >
+                <button onClick={() => setStep("privacy")} style={{ flex: 1, padding: "12px 8px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
                   <div style={{ fontSize: 16, marginBottom: 3 }}>📋</div>
                   <div style={{ fontSize: 11, color: "#999", fontWeight: 600 }}>개인정보처리방침</div>
                 </button>
-                <a
-                  href="mailto:skatkdqla173123@gmail.com"
-                  style={{ flex: 1, padding: "12px 8px", background: "#fff", textDecoration: "none", display: "block", textAlign: "center" }}
-                >
+                <a href="mailto:skatkdqla173123@gmail.com" style={{ flex: 1, padding: "12px 8px", background: "#fff", textDecoration: "none", display: "block", textAlign: "center" }}>
                   <div style={{ fontSize: 16, marginBottom: 3 }}>💬</div>
                   <div style={{ fontSize: 11, color: "#999", fontWeight: 600 }}>문의하기</div>
                 </a>
