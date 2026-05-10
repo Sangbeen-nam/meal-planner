@@ -197,6 +197,33 @@ export default function MealPlanner() {
     setEditAllergies([]); setEditAvoids([]); setEditFoodPrefs([]);
   };
 
+  const handleResetProfile = (idx) => {
+    if (!window.confirm("이 프로필을 초기화할까요?")) return;
+    const next = profiles.filter((_, i) => i !== idx);
+    setProfiles(next);
+    localStorage.setItem("mp_profiles", JSON.stringify(next));
+    const newTab = Math.min(profileTab, Math.max(0, next.length - 1));
+    setProfileTab(newTab);
+    if (next.length > 0) {
+      loadProfileIntoEdit(newTab, next);
+      applyAllProfiles(next);
+    } else {
+      setEditBirthYear(""); setEditBirthMonth("");
+      setEditAllergies([]); setEditAvoids([]); setEditFoodPrefs([]);
+    }
+  };
+
+  const handleDeleteAllProfiles = () => {
+    if (!window.confirm("저장된 프로필을 모두 삭제할까요?")) return;
+    localStorage.removeItem("mp_profiles");
+    setProfiles([]);
+    setProfileTab(0);
+    setEditBirthYear(""); setEditBirthMonth("");
+    setEditAllergies([]); setEditAvoids([]); setEditFoodPrefs([]);
+    setAges([]);
+    setAllergies([]);
+  };
+
   const saveCurrentProfile = () => {
     const profile = {
       birthYear: editBirthYear, birthMonth: editBirthMonth,
@@ -355,14 +382,26 @@ export default function MealPlanner() {
         )}
 
         {/* Profile editor card */}
-        <div style={{ background: "#fff", borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: "0 2px 14px rgba(255,107,107,0.08)", border: "1.5px solid #ffd0b0" }}>
+        <div style={{ background: "#fff", borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: "0 2px 14px rgba(255,107,107,0.08)", border: "1.5px solid #ffd0b0", position: "relative" }}>
+          {profiles.length > 0 && (
+            <button onClick={handleDeleteAllProfiles}
+              style={{ position: "absolute", top: 14, right: 14, background: "none", border: "none", color: "#ccc", fontSize: 10, cursor: "pointer", fontFamily: "inherit", padding: "2px 4px", lineHeight: 1.2 }}>
+              전체 삭제
+            </button>
+          )}
           {/* Tabs */}
-          <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap", alignItems: "center" }}>
             {profiles.map((_, i) => (
-              <button key={i} onClick={() => handleProfileTabClick(i)}
-                style={{ padding: "7px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", background: profileTab === i ? "#ff6b6b" : "#fff", color: profileTab === i ? "#fff" : "#aaa", border: profileTab === i ? "1.5px solid #ff6b6b" : "1.5px solid #eee" }}>
-                {CHILD_LABELS[i]}
-              </button>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                <button onClick={() => handleProfileTabClick(i)}
+                  style={{ padding: "7px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", background: profileTab === i ? "#ff6b6b" : "#fff", color: profileTab === i ? "#fff" : "#aaa", border: profileTab === i ? "1.5px solid #ff6b6b" : "1.5px solid #eee" }}>
+                  {CHILD_LABELS[i]}
+                </button>
+                <button onClick={() => handleResetProfile(i)}
+                  style={{ background: "none", border: "none", color: "#ccc", fontSize: 11, cursor: "pointer", fontFamily: "inherit", padding: "2px 4px", lineHeight: 1.2 }}>
+                  🗑️ 초기화
+                </button>
+              </div>
             ))}
             {profiles.length < 3 && (
               <button onClick={handleAddProfileTab}
