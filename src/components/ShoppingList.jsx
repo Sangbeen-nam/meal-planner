@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DAYS } from "../data/constants";
+import { getCoupangLink } from "../data/coupangLinks";
 
 export function ShoppingList({ meal, weekPlan, showWeeklyShop, setShowWeeklyShop, checkedItems, toggleCheck, onClear }) {
   const [weeklyChecked, setWeeklyChecked] = useState(() => {
@@ -20,8 +21,6 @@ export function ShoppingList({ meal, weekPlan, showWeeklyShop, setShowWeeklyShop
     localStorage.removeItem("mp_weekly_checked");
   };
 
-  const coupangUrl = (name) =>
-    `https://www.coupang.com/np/search?q=${encodeURIComponent(name + " 로켓프레시")}&channel=user&isPriorityMobileWeb=true`;
 
   const mealIngredients = [...new Set(
     [meal.rice, meal.soup, ...(meal.sides || [])].flatMap(i => i?.ingredients || [])
@@ -49,7 +48,7 @@ export function ShoppingList({ meal, weekPlan, showWeeklyShop, setShowWeeklyShop
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
           {mealIngredients.map(ing => (
             <a key={ing}
-              href={coupangUrl(ing)}
+              href={getCoupangLink(ing)}
               target="_blank" rel="noreferrer"
               onClick={e => { e.preventDefault(); toggleCheck(ing); window.open(e.currentTarget.href, "_blank"); }}
               style={{ background: checkedItems.includes(ing) ? "#f0fdf4" : "#fff", border: `1px solid ${checkedItems.includes(ing) ? "#86efac" : "#ffc0a0"}`, borderRadius: 8, padding: "4px 9px", fontSize: 12, color: checkedItems.includes(ing) ? "#16a34a" : "#e55", textDecoration: checkedItems.includes(ing) ? "line-through" : "none", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
@@ -84,7 +83,7 @@ export function ShoppingList({ meal, weekPlan, showWeeklyShop, setShowWeeklyShop
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {allWeeklyIngs.map(ing => (
               <a key={ing}
-                href={coupangUrl(ing)}
+                href={getCoupangLink(ing)}
                 target="_blank" rel="noreferrer"
                 onClick={e => { e.preventDefault(); toggleWeeklyCheck(ing); window.open(e.currentTarget.href, "_blank"); }}
                 style={{ background: weeklyChecked.includes(ing) ? "#f0fdf4" : "#fff", border: `1px solid ${weeklyChecked.includes(ing) ? "#86efac" : "#fed7aa"}`, borderRadius: 8, padding: "5px 10px", fontSize: 12, color: weeklyChecked.includes(ing) ? "#16a34a" : "#c2410c", textDecoration: weeklyChecked.includes(ing) ? "line-through" : "none", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
