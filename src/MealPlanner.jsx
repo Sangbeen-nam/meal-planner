@@ -31,7 +31,8 @@ const MEAL_INFO = {
   "저녁": { icon: "🌙", bg: "#eff6ff", badge: "#bfdbfe", text: "#1e3a8a" },
 };
 
-const BIRTH_YEARS = Array.from({ length: 11 }, (_, i) => 2015 + i);
+const THIS_YEAR = new Date().getFullYear();
+const BIRTH_YEARS = Array.from({ length: THIS_YEAR - 2008 + 1 }, (_, i) => 2008 + i);
 const BIRTH_MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 function calcAgeFromBirth(year, month) {
@@ -116,21 +117,27 @@ export default function MealPlanner() {
   const allIngredNames      = INGREDIENT_GROUPS.flatMap(g => g.items.map(x => x.n));
 
   // ── helpers ───────────────────────────────────────────────────────────────
+  // ── localStorage 안전 래퍼 ────────────────────────────────────────────────
+  const safeSet = (key, val) => {
+    try { localStorage.setItem(key, JSON.stringify(val)); }
+    catch (e) { console.warn("localStorage 저장 실패:", key, e); }
+  };
+
   const toggleArr = (setArr, val, key) => setArr(prev => {
     const next = prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val];
-    if (key) localStorage.setItem(key, JSON.stringify(next));
+    if (key) safeSet(key, next);
     return next;
   });
   const toggleCheck = ing => setCheckedItems(prev => {
     const next = prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing];
-    localStorage.setItem("mp_checked", JSON.stringify(next));
+    safeSet("mp_checked", next);
     return next;
   });
   const ms = m => MEAL_INFO[m] || MEAL_INFO["저녁"];
 
   // ── onboarding render ─────────────────────────────────────────────────────
   const finishOnboarding = () => {
-    localStorage.setItem("mp_onboarding_done", "1");
+    try { localStorage.setItem("mp_onboarding_done", "1"); } catch(e) { console.warn("storage fail", e); }
     setShowOnboarding(false);
     setOnboardingSlide(0);
   };
@@ -171,9 +178,9 @@ export default function MealPlanner() {
     const ages  = [...new Set(filled.map(p => ageGroupFromAge(calcAgeFromBirth(p.birthYear, p.birthMonth))).filter(Boolean))];
     const algys = [...new Set(filled.flatMap(p => p.allergies  || []))];
     const foods = [...new Set(filled.flatMap(p => p.foodPrefs  || []))];
-    if (ages.length)  { setAges(ages);   localStorage.setItem("mp_ages",  JSON.stringify(ages));  }
+    if (ages.length)  { setAges(ages);   safeSet("mp_ages", ages);  }
     setAllergies(algys);
-    if (foods.length) { setFoods(foods); localStorage.setItem("mp_foods", JSON.stringify(foods)); }
+    if (foods.length) { setFoods(foods); safeSet("mp_foods", foods); }
   };
 
   const loadProfileIntoEdit = (idx, allProfiles) => {
@@ -201,7 +208,7 @@ export default function MealPlanner() {
     if (!window.confirm("이 프로필을 초기화할까요?")) return;
     const next = profiles.filter((_, i) => i !== idx);
     setProfiles(next);
-    localStorage.setItem("mp_profiles", JSON.stringify(next));
+    safeSet("mp_profiles", next);
     const newTab = Math.min(profileTab, Math.max(0, next.length - 1));
     setProfileTab(newTab);
     if (next.length > 0) {
@@ -232,7 +239,7 @@ export default function MealPlanner() {
     const next = [...profiles];
     next[profileTab] = profile;
     setProfiles(next);
-    localStorage.setItem("mp_profiles", JSON.stringify(next));
+    safeSet("mp_profiles", next);
     return next;
   };
 
@@ -262,7 +269,7 @@ export default function MealPlanner() {
     const t = customInput.trim();
     if (!t) return;
     if (!selectedIngreds.includes(t)) {
-      setIngreds(prev => { const next = [...prev, t]; localStorage.setItem("mp_ingreds", JSON.stringify(next)); return next; });
+      setIngreds(prev => { const next = [...prev, t]; safeSet("mp_ingreds", next); return next; });
     }
     setCustomInput("");
   };
@@ -283,12 +290,18 @@ export default function MealPlanner() {
     fadeNext(2, 1600);
 
     setTimeout(() => {
-      const plan = generateWeekPlan(selectedFoods, selectedIngreds, selectedAges, allergenIngredients, avoidedIngreds, mealsToUse);
-      setWeekPlan(plan);
-      localStorage.setItem("mp_weekplan", JSON.stringify(plan));
-      setActiveMeal(mealsToUse[0]);
-      setStep("planner");
-      setLoading(false);
+      try {
+        const plan = generateWeekPlan(selectedFoods, selectedIngreds, selectedAges, allergenIngredients, avoidedIngreds, mealsToUse);
+        setWeekPlan(plan);
+        safeSet("mp_weekplan", plan);
+        setActiveMeal(mealsToUse[0]);
+        setStep("planner");
+      } catch (e) {
+        console.error("식단 생성 오류:", e);
+        alert("식단 생성 중 오류가 발생했어요. 다시 시도해주세요.");
+      } finally {
+        setLoading(false);
+      }
     }, 2400);
   };
 
@@ -298,18 +311,20 @@ export default function MealPlanner() {
     const soup  = pickOne(SOUP_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
     const sides = pickTwoSides(selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
     setWeekPlan(prev => {
+      if (!prev?.[activeDay]?.[activeMeal]) return prev;
       const next = JSON.parse(JSON.stringify(prev));
       next[activeDay][activeMeal] = { rice, soup, sides };
-      localStorage.setItem("mp_weekplan", JSON.stringify(next));
+      safeSet("mp_weekplan", next);
       return next;
     });
   };
 
   const onReplaceItem = (type) => {
+    if (!weekPlan?.[activeDay]?.[activeMeal]) return;
     const minAgeIndex = getMinAgeIndex(selectedAges);
     setWeekPlan(prev => {
       const next = handleReplaceItem(prev, activeDay, activeMeal, type, selectedFoods, selectedIngreds, minAgeIndex, allergenIngredients, avoidedIngreds);
-      localStorage.setItem("mp_weekplan", JSON.stringify(next));
+      safeSet("mp_weekplan", next);
       return next;
     });
   };
@@ -512,7 +527,7 @@ export default function MealPlanner() {
                 setSelectedMeals(prev => {
                   const next = prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m];
                   const ordered = MEALS.filter(meal => next.includes(meal));
-                  localStorage.setItem("mp_meals", JSON.stringify(ordered));
+                  safeSet("mp_meals", ordered);
                   return ordered;
                 });
               }}
@@ -605,7 +620,7 @@ export default function MealPlanner() {
               {selectedIngreds.filter(i => !allIngredNames.includes(i)).map(i => (
                 <span key={i} style={{ background: "#fff0e8", border: "1px solid #ff8e53", borderRadius: 20, padding: "4px 10px", fontSize: 12, color: "#ff8e53", display: "flex", alignItems: "center", gap: 4 }}>
                   {i}
-                  <button onClick={() => setIngreds(prev => { const next = prev.filter(v => v !== i); localStorage.setItem("mp_ingreds", JSON.stringify(next)); return next; })}
+                  <button onClick={() => setIngreds(prev => { const next = prev.filter(v => v !== i); safeSet("mp_ingreds", next); return next; })}
                     style={{ background: "none", border: "none", color: "#ff8e53", cursor: "pointer", fontSize: 12, padding: 0 }}>×</button>
                 </span>
               ))}
@@ -622,7 +637,7 @@ export default function MealPlanner() {
             {selectedIngreds.map(i => (
               <span key={i} style={{ background: "#fff", border: "1px solid #ffc0a0", borderRadius: 8, padding: "3px 9px", fontSize: 11, color: "#e55", display: "flex", alignItems: "center", gap: 3 }}>
                 {i}
-                <button onClick={() => setIngreds(prev => { const next = prev.filter(v => v !== i); localStorage.setItem("mp_ingreds", JSON.stringify(next)); return next; })}
+                <button onClick={() => setIngreds(prev => { const next = prev.filter(v => v !== i); safeSet("mp_ingreds", next); return next; })}
                   style={{ background: "none", border: "none", color: "#ffb0a0", cursor: "pointer", fontSize: 11, padding: 0 }}>×</button>
               </span>
             ))}

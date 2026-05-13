@@ -11,12 +11,13 @@ export function RecipeView({ item, onBack }) {
         <div style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 6 }}>{item.name}</div>
 
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-          <span style={{ fontSize: 11, color: "#aaa" }}>⏱ {item.time}분</span>
-          <span style={{ fontSize: 11, color: "#aaa" }}>🔥 {item.cal}kcal</span>
-          <span style={{ fontSize: 11, color: diffColor(item.diff) }}>● {item.diff}</span>
+          <span style={{ fontSize: 11, color: "#aaa" }}>⏱ {item.time ?? "-"}분</span>
+          <span style={{ fontSize: 11, color: "#aaa" }}>🔥 {item.cal ?? "-"}kcal</span>
+          <span style={{ fontSize: 11, color: diffColor(item.diff) }}>● {item.diff ?? "-"}</span>
           <span style={{ fontSize: 11, color: "#ff8e53", fontWeight: 600 }}>👤 1인분</span>
           {item.safeFor && (() => {
             const idx = AGE_ORDER.indexOf(item.safeFor);
+            if (idx < 0) return null;
             return <span style={{ fontSize: 11, background: AGE_COLORS[idx] + "44", color: "#555", border: `1px solid ${AGE_COLORS[idx]}`, borderRadius: 20, padding: "1px 8px", fontWeight: 600 }}>✅ {AGE_LABELS[idx]}부터 OK</span>;
           })()}
         </div>
@@ -25,7 +26,7 @@ export function RecipeView({ item, onBack }) {
           <div style={{ background: "linear-gradient(135deg,#fff8f0,#fff0f8)", borderRadius: 12, padding: "11px 13px", marginBottom: 13, border: "1px solid #ffd0b0" }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#e55", marginBottom: 7 }}>⚖️ 1인분 재료 정량</div>
             <div style={{ fontSize: 12, color: "#666", lineHeight: 1.9 }}>
-              {item.serving.split(", ").map((s, i) => (
+              {(item.serving?.split(", ") ?? []).map((s, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 1 }}>
                   <span style={{ color: "#ff8e53", fontSize: 10, marginTop: 4, flexShrink: 0 }}>●</span>
                   <span>{s}</span>
@@ -51,7 +52,7 @@ export function RecipeView({ item, onBack }) {
         <div style={{ marginBottom: 13 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#e55", marginBottom: 7 }}>🥕 필요한 재료</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {item.ingredients.map(ing => (
+            {(item.ingredients ?? []).map(ing => (
               <span key={ing} style={{ background: "#fff8f0", border: "1px solid #ffd0b0", borderRadius: 8, padding: "4px 10px", fontSize: 12, color: "#d4601a" }}>{ing}</span>
             ))}
           </div>
@@ -59,7 +60,7 @@ export function RecipeView({ item, onBack }) {
 
         <div style={{ fontSize: 13, fontWeight: 700, color: "#e55", marginBottom: 9 }}>👩‍🍳 상세 조리 순서</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-          {item.steps.map((s, i) => (
+          {(item.steps ?? []).map((s, i) => (
             <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "11px 12px", borderRadius: 12, background: i % 2 === 0 ? "#fff8f0" : "#f0f8ff" }}>
               <div style={{ width: 24, height: 24, borderRadius: "50%", flexShrink: 0, background: "linear-gradient(135deg,#ff6b6b,#ff8e53)", color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1 }}>{i + 1}</div>
               <div style={{ fontSize: 13, color: "#444", lineHeight: 1.7 }}>{s}</div>
