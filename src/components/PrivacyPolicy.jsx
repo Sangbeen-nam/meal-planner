@@ -116,8 +116,29 @@ export default function PrivacyPolicy({ onBack }) {
           </ul>
         </div>
 
+        <div style={card}>
+          <div style={h2}>제9조 (광고 서비스 – Google AdSense)</div>
+          <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+            <li style={li}>1. 본 서비스는 구글 애드센스(Google AdSense)를 통해 맞춤형 광고를 게재합니다.</li>
+            <li style={li}>2. Google은 쿠키를 사용하여 이용자의 사이트 방문 기록 등을 기반으로 관심 기반 광고를 제공할 수 있습니다.</li>
+            <li style={li}>3. Google이 수집하는 정보는 Google의 개인정보처리방침에 따라 처리됩니다.</li>
+            <li style={{ ...li, marginTop: 8 }}>
+              - Google 개인정보처리방침:{" "}
+              <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#ff6b6b" }}>
+                policies.google.com/privacy
+              </a>
+            </li>
+            <li style={li}>
+              - 맞춤 광고 거부:{" "}
+              <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" style={{ color: "#ff6b6b" }}>
+                google.com/settings/ads
+              </a>
+            </li>
+          </ul>
+        </div>
+
         <div style={{ ...card, background: "#fff8f0", border: "1px solid #ffd0b0" }}>
-          <div style={{ fontSize: 11, color: "#aaa", textAlign: "center" }}>본 개인정보처리방침은 2026년 5월 8일부터 적용됩니다.</div>
+          <div style={{ fontSize: 11, color: "#aaa", textAlign: "center" }}>본 개인정보처리방침은 2026년 5월 14일부터 적용됩니다.</div>
         </div>
 
         <ContactSection />

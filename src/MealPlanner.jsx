@@ -9,6 +9,108 @@ import { MealItemCard } from "./components/MealItemCard";
 import { RecipeView } from "./components/RecipeView";
 import { ShoppingList } from "./components/ShoppingList";
 import PrivacyPolicy from "./components/PrivacyPolicy.jsx";
+import AboutPage from "./components/AboutPage.jsx";
+import TermsPage from "./components/TermsPage.jsx";
+
+const NUTRITION_GUIDES = [
+  {
+    emoji: "🍼", label: "영아 (0~2세)", color: "#f9a8d4",
+    title: "이유식·죽 중심의 부드러운 식단",
+    points: [
+      "생후 6개월부터 이유식을 시작하며, 쌀미음→야채죽→진밥 순서로 진행해요.",
+      "철분이 풍부한 쇠고기, 닭고기를 곱게 갈아 이유식에 활용하세요.",
+      "계란·우유·밀 등 주요 알레르기 식품은 한 번에 하나씩 도입하고 반응을 살펴보세요.",
+      "돌 이전에는 꿀·생우유·염분·설탕을 주지 않아요.",
+      "하루 단백질 목표: 15g / 칼슘: 400mg / 철분: 6mg",
+    ],
+  },
+  {
+    emoji: "🐣", label: "유아 (3~5세)", color: "#fdba74",
+    title: "다양한 식재료 경험과 편식 예방",
+    points: [
+      "밥·국·반찬 형태의 규칙적인 식사 패턴을 만들어주세요.",
+      "색깔 채소(당근·브로콜리·파프리카)를 매일 1가지 이상 포함해요.",
+      "편식하는 아이에게는 좋아하는 음식과 섞어서 조리하면 효과적이에요.",
+      "성장에 필요한 칼슘 보충을 위해 우유·두부·멸치를 자주 활용하세요.",
+      "하루 단백질 목표: 20g / 칼슘: 600mg / 철분: 7mg",
+    ],
+  },
+  {
+    emoji: "🎒", label: "초등 저학년 (6~8세)", color: "#86efac",
+    title: "뼈 성장·집중력을 위한 균형 식단",
+    points: [
+      "뼈 성장을 위한 칼슘 섭취가 중요해지는 시기예요. 하루 700mg을 목표로 해요.",
+      "아침 식사를 거르지 않도록 영양 밀도 높은 메뉴를 준비하면 집중력에 도움이 돼요.",
+      "철분 결핍 빈혈 예방을 위해 쇠고기·달걀·시금치를 주 3회 이상 활용하세요.",
+      "비타민C(귤·파프리카)와 함께 철분 식품을 먹으면 흡수율이 올라가요.",
+      "하루 단백질 목표: 30g / 칼슘: 700mg / 철분: 8mg",
+    ],
+  },
+  {
+    emoji: "📚", label: "초등 고학년 (9~11세)", color: "#93c5fd",
+    title: "활동량 증가에 맞춘 에너지 보충",
+    points: [
+      "운동량이 늘어나는 시기로 탄수화물(밥·고구마·고)과 단백질(닭·계란·두부)을 충분히 챙겨요.",
+      "성장 급등기가 시작될 수 있어 칼슘 섭취를 하루 800mg 이상으로 높여가세요.",
+      "패스트푸드·가공식품은 주 1~2회 이내로 제한하고 나트륨 섭취를 줄여요.",
+      "충분한 식이섬유(야채·현미·콩류) 섭취로 변비를 예방해요.",
+      "하루 단백질 목표: 40g / 칼슘: 800mg / 철분: 10mg",
+    ],
+  },
+  {
+    emoji: "🏃", label: "청소년 (12~18세)", color: "#c4b5fd",
+    title: "급성장기, 칼슘·철분이 핵심",
+    points: [
+      "급성장기에 뼈 밀도를 높이는 시기로 칼슘이 하루 1,000mg으로 가장 많이 필요해요.",
+      "여학생은 생리 시작 후 철분 결핍에 주의하고 적색육·달걀·해조류를 자주 먹어요.",
+      "뇌 활동·수험 에너지를 위해 아침 식사와 단백질 보충이 필수예요.",
+      "탄산음료·고당 식품 대신 물·유제품·과일로 수분과 영양을 채워요.",
+      "하루 단백질 목표: 55g / 칼슘: 1,000mg / 철분: 14mg",
+    ],
+  },
+];
+
+function NutritionGuide() {
+  const [open, setOpen] = useState(null);
+  return (
+    <div style={{ marginTop: 20 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#e55", marginBottom: 10 }}>📖 연령별 영양 가이드</div>
+      <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12 }}>
+        아이 성장 단계별 영양 목표와 식단 팁을 확인해보세요.
+      </div>
+      {NUTRITION_GUIDES.map((g, i) => (
+        <div key={g.label} style={{ marginBottom: 8 }}>
+          <button
+            onClick={() => setOpen(open === i ? null : i)}
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: open === i ? "14px 14px 0 0" : 14, background: g.color + "33", border: `1px solid ${g.color}`, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
+          >
+            <span style={{ fontSize: 20 }}>{g.emoji}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>{g.label}</div>
+              <div style={{ fontSize: 11, color: "#888" }}>{g.title}</div>
+            </div>
+            <span style={{ fontSize: 12, color: "#bbb" }}>{open === i ? "▲" : "▼"}</span>
+          </button>
+          {open === i && (
+            <div style={{ background: "#fff", border: `1px solid ${g.color}`, borderTop: "none", borderRadius: "0 0 14px 14px", padding: "12px 14px" }}>
+              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                {g.points.map((pt, j) => (
+                  <li key={j} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 7, fontSize: 12, color: "#555", lineHeight: 1.7 }}>
+                    <span style={{ color: g.color.replace("33", ""), flexShrink: 0, marginTop: 2 }}>●</span>
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      ))}
+      <div style={{ fontSize: 10, color: "#ccc", textAlign: "center", marginTop: 8 }}>
+        ※ 한국 영양학회 기준 참고 / 정확한 영양 진단은 전문의와 상담하세요
+      </div>
+    </div>
+  );
+}
 
 const ONBOARDING_SLIDES = [
   { emoji: "👶", title: "아이 정보 입력",    desc: "생년월일과 알레르기 정보를 저장하면\n맞춤 식단이 더 정확해져요" },
@@ -770,15 +872,20 @@ export default function MealPlanner() {
               ))}
               <ShoppingList meal={meal} weekPlan={weekPlan} showWeeklyShop={showWeeklyShop} setShowWeeklyShop={setShowWeeklyShop} checkedItems={checkedItems} toggleCheck={toggleCheck} onClear={() => setCheckedItems([])} />
               <button onClick={handleRegenMeal} style={{ width: "100%", padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "#fff", color: "#ff6b6b", border: "2px solid #ff6b6b", cursor: "pointer", fontFamily: "inherit" }}>🔄 이 끼니 다시 뽑기</button>
+
+              {/* 영양 가이드 */}
+              <NutritionGuide />
             </div>
           );
         })()}
 
         {step === "recipe"  && <RecipeView item={viewRecipe} onBack={() => setStep("planner")} />}
         {step === "privacy" && <PrivacyPolicy onBack={() => setStep("profile")} />}
+        {step === "about"   && <AboutPage onBack={() => setStep("profile")} />}
+        {step === "terms"   && <TermsPage onBack={() => setStep("profile")} />}
 
         {/* Footer */}
-        {step !== "privacy" && (
+        {step !== "privacy" && step !== "about" && step !== "terms" && (
           <div style={{ marginTop: 20 }}>
             <div style={{ background: "#fff8f0", border: "1px solid #ffd0b0", borderRadius: 12, padding: "12px 16px", marginBottom: 12, display: "flex", gap: 10, alignItems: "flex-start" }}>
               <span style={{ fontSize: 18, flexShrink: 0 }}>📢</span>
@@ -791,13 +898,21 @@ export default function MealPlanner() {
             </div>
             <div style={{ background: "#fff", borderRadius: 14, overflow: "hidden", border: "1px solid #eee" }}>
               <div style={{ display: "flex" }}>
-                <button onClick={() => setStep("privacy")} style={{ flex: 1, padding: "12px 8px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
-                  <div style={{ fontSize: 16, marginBottom: 3 }}>📋</div>
-                  <div style={{ fontSize: 11, color: "#999", fontWeight: 600 }}>개인정보처리방침</div>
+                <button onClick={() => setStep("about")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
+                  <div style={{ fontSize: 16, marginBottom: 3 }}>ℹ️</div>
+                  <div style={{ fontSize: 10, color: "#999", fontWeight: 600 }}>서비스 소개</div>
                 </button>
-                <a href="mailto:skatkdqla173123@gmail.com" style={{ flex: 1, padding: "12px 8px", background: "#fff", textDecoration: "none", display: "block", textAlign: "center" }}>
+                <button onClick={() => setStep("terms")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
+                  <div style={{ fontSize: 16, marginBottom: 3 }}>📄</div>
+                  <div style={{ fontSize: 10, color: "#999", fontWeight: 600 }}>이용약관</div>
+                </button>
+                <button onClick={() => setStep("privacy")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
+                  <div style={{ fontSize: 16, marginBottom: 3 }}>📋</div>
+                  <div style={{ fontSize: 10, color: "#999", fontWeight: 600 }}>개인정보처리방침</div>
+                </button>
+                <a href="mailto:skatkdqla173123@gmail.com" style={{ flex: 1, padding: "12px 4px", background: "#fff", textDecoration: "none", display: "block", textAlign: "center" }}>
                   <div style={{ fontSize: 16, marginBottom: 3 }}>💬</div>
-                  <div style={{ fontSize: 11, color: "#999", fontWeight: 600 }}>문의하기</div>
+                  <div style={{ fontSize: 10, color: "#999", fontWeight: 600 }}>문의하기</div>
                 </a>
               </div>
             </div>
