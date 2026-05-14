@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { DAYS, MEALS, FOOD_PREFS, INGREDIENT_GROUPS, AGE_GROUPS, ALLERGY_OPTIONS } from "./data/constants";
 import { calcMealGoal, fmtN } from "./utils/nutrition";
 import { getMinAgeIndex, generateWeekPlan, pickOne, pickTwoSides, handleReplaceItem } from "./utils/mealPicker";
@@ -252,6 +252,37 @@ export default function MealPlanner() {
     } catch {
       alert("이미지 저장에 실패했어요. 다시 시도해주세요.");
     }
+  };
+
+  useEffect(() => {
+    if (window.Kakao && !window.Kakao.isInitialized()) {
+      window.Kakao.init('b6e09cf5c3a307c2db30c02d06258e2c');
+    }
+  }, []);
+
+  const handleKakaoShare = () => {
+    if (!window.Kakao) return;
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: '우리 아이 이번 주 식단표 완성! 🍱',
+        description: '균형잡힌 한 주 식단을 클릭 한 번으로 완성했어요. 우리아이 식단표 앱으로 만들어보세요!',
+        imageUrl: 'https://meal-planner-iota-nine.vercel.app/og-image.png',
+        link: {
+          mobileWebUrl: 'https://meal-planner-iota-nine.vercel.app',
+          webUrl: 'https://meal-planner-iota-nine.vercel.app',
+        },
+      },
+      buttons: [
+        {
+          title: '식단표 만들러 가기',
+          link: {
+            mobileWebUrl: 'https://meal-planner-iota-nine.vercel.app',
+            webUrl: 'https://meal-planner-iota-nine.vercel.app',
+          },
+        },
+      ],
+    });
   };
 
   const handleRegenDay = () => {
@@ -973,6 +1004,10 @@ export default function MealPlanner() {
                       style={{ flex: 1, padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 12px rgba(255,107,107,0.3)" }}>
                       📸 오늘 식단 저장
                     </button>
+                    <button onClick={handleKakaoShare} style={{ background: "#FEE500", color: "#3C1E1E", border: "none", borderRadius: 14, padding: "10px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit", flexShrink: 0 }}>
+                      <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png" alt="카카오" style={{ width: 20, height: 20 }} />
+                      카카오톡 공유
+                    </button>
                   </div>
 
                   <NutritionGuide />
@@ -1025,10 +1060,16 @@ export default function MealPlanner() {
                     </div>
                   </div>
 
-                  <button onClick={() => handleSaveImage(weeklySaveRef, "주간_식단표.png")}
-                    style={{ width: "100%", marginTop: 10, padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 12px rgba(255,107,107,0.3)" }}>
-                    📸 주간 식단 저장
-                  </button>
+                  <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                    <button onClick={() => handleSaveImage(weeklySaveRef, "주간_식단표.png")}
+                      style={{ flex: 1, padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 12px rgba(255,107,107,0.3)" }}>
+                      📸 주간 식단 저장
+                    </button>
+                    <button onClick={handleKakaoShare} style={{ background: "#FEE500", color: "#3C1E1E", border: "none", borderRadius: 14, padding: "10px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit", flexShrink: 0 }}>
+                      <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png" alt="카카오" style={{ width: 20, height: 20 }} />
+                      카카오톡 공유
+                    </button>
+                  </div>
 
                   <NutritionGuide />
                 </div>
