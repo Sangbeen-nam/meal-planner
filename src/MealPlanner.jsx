@@ -74,8 +74,8 @@ function NutritionGuide() {
   const [open, setOpen] = useState(null);
   return (
     <div style={{ marginTop: 20 }}>
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#e55", marginBottom: 10 }}>📖 연령별 영양 가이드</div>
-      <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#d94f00", marginBottom: 8 }}>📖 연령별 영양 가이드</div>
+      <div style={{ fontSize: 13, color: "#666", marginBottom: 12 }}>
         아이 성장 단계별 영양 목표와 식단 팁을 확인해보세요.
       </div>
       {NUTRITION_GUIDES.map((g, i) => (
@@ -86,16 +86,16 @@ function NutritionGuide() {
           >
             <span style={{ fontSize: 20 }}>{g.emoji}</span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>{g.label}</div>
-              <div style={{ fontSize: 11, color: "#888" }}>{g.title}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>{g.label}</div>
+              <div style={{ fontSize: 12, color: "#555" }}>{g.title}</div>
             </div>
-            <span style={{ fontSize: 12, color: "#bbb" }}>{open === i ? "▲" : "▼"}</span>
+            <span style={{ fontSize: 13, color: "#888" }}>{open === i ? "▲" : "▼"}</span>
           </button>
           {open === i && (
             <div style={{ background: "#fff", border: `1px solid ${g.color}`, borderTop: "none", borderRadius: "0 0 14px 14px", padding: "12px 14px" }}>
               <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
                 {g.points.map((pt, j) => (
-                  <li key={j} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 7, fontSize: 12, color: "#555", lineHeight: 1.7 }}>
+                  <li key={j} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 7, fontSize: 13, color: "#333", lineHeight: 1.75 }}>
                     <span style={{ color: g.color.replace("33", ""), flexShrink: 0, marginTop: 2 }}>●</span>
                     {pt}
                   </li>
@@ -105,7 +105,7 @@ function NutritionGuide() {
           )}
         </div>
       ))}
-      <div style={{ fontSize: 10, color: "#ccc", textAlign: "center", marginTop: 8 }}>
+      <div style={{ fontSize: 11, color: "#aaa", textAlign: "center", marginTop: 8 }}>
         ※ 한국 영양학회 기준 참고 / 정확한 영양 진단은 전문의와 상담하세요
       </div>
     </div>
@@ -536,7 +536,7 @@ export default function MealPlanner() {
 
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <div style={{ fontSize: 20, fontWeight: 700, color: "#333", marginBottom: 6 }}>우리 아이를 소개해주세요 👶</div>
-          <div style={{ fontSize: 13, color: "#aaa", lineHeight: 1.7 }}>아이 정보를 저장하면 다음부터 바로 시작할 수 있어요</div>
+          <div style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>아이 정보를 저장하면 다음부터 바로 시작할 수 있어요</div>
         </div>
 
         {/* Quick start card for returning users */}
@@ -549,7 +549,7 @@ export default function MealPlanner() {
               const ag  = ageGroupFromAge(age);
               const agLabel = age !== null ? `만 ${age}세 (${AGE_GROUPS.find(g => g.id === ag)?.label || ""})` : "";
               return (
-                <div key={i} style={{ fontSize: 12, color: "#888", marginBottom: 5, lineHeight: 1.6 }}>
+                <div key={i} style={{ fontSize: 13, color: "#555", marginBottom: 5, lineHeight: 1.6 }}>
                   <span style={{ fontWeight: 700, color: "#ff8e53" }}>{CHILD_LABELS[i]}</span>
                   {agLabel ? ` · ${agLabel}` : ""}
                   {p.allergies?.length ? ` · ${p.allergies.join(", ")} 알레르기` : ""}
@@ -595,7 +595,7 @@ export default function MealPlanner() {
 
           {/* Birth date dropdowns */}
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#888", marginBottom: 10 }}>📅 생년월일</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 10 }}>📅 생년월일</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <select value={editBirthYear} onChange={e => setEditBirthYear(e.target.value)}
                 style={{ padding: "9px 12px", borderRadius: 10, border: "1.5px solid #ffd0b0", fontSize: 14, fontFamily: "inherit", background: "#fff8f0", color: editBirthYear ? "#444" : "#bbb", outline: "none", cursor: "pointer" }}>
@@ -617,7 +617,7 @@ export default function MealPlanner() {
 
           {/* Allergies */}
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#888", marginBottom: 10 }}>우리 아이가 피해야 할 것이 있나요?</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 10 }}>우리 아이가 피해야 할 것이 있나요?</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
               {ALLERGY_OPTIONS.map(a => {
                 const sel = editAllergies.includes(a.id);
@@ -634,22 +634,22 @@ export default function MealPlanner() {
 
           {/* Avoided ingredients */}
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#888", marginBottom: 4 }}>우리 아이가 싫어하는 재료가 있나요?</div>
-            <div style={{ fontSize: 11, color: "#ccc", marginBottom: 8 }}>선택하면 해당 재료가 든 메뉴는 식단에서 자동 제외돼요</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 4 }}>우리 아이가 싫어하는 재료가 있나요?</div>
+            <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>선택하면 해당 재료가 든 메뉴는 식단에서 자동 제외돼요</div>
             <div style={{ maxHeight: 160, overflowY: "auto", display: "flex", flexWrap: "wrap", gap: 5, padding: "8px", border: "1px solid #f0f0f0", borderRadius: 12, background: "#fafafa" }}>
               {INGREDIENT_GROUPS.flatMap(grp => grp.items).map(item => {
                 const sel = editAvoids.includes(item.n);
                 return (
                   <button key={item.n}
                     onClick={() => setEditAvoids(prev => prev.includes(item.n) ? prev.filter(x => x !== item.n) : [...prev, item.n])}
-                    style={{ padding: "4px 9px", borderRadius: 16, fontSize: 11, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, background: sel ? "#fef3c7" : "#fff", color: sel ? "#b45309" : "#ccc", border: sel ? "1.5px solid #d97706" : "1px solid #eee", fontWeight: sel ? 700 : 400 }}>
+                    style={{ padding: "5px 10px", borderRadius: 16, fontSize: 12, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, background: sel ? "#fef3c7" : "#fff", color: sel ? "#b45309" : "#888", border: sel ? "1.5px solid #d97706" : "1px solid #ddd", fontWeight: sel ? 700 : 500 }}>
                     {item.e} {item.n}
                   </button>
                 );
               })}
             </div>
             {editAvoids.length > 0 && (
-              <div style={{ marginTop: 6, fontSize: 11, color: "#d97706", fontWeight: 700 }}>
+              <div style={{ marginTop: 6, fontSize: 13, color: "#d97706", fontWeight: 700 }}>
                 🚫 제외: {editAvoids.join(", ")}
               </div>
             )}
@@ -678,13 +678,13 @@ export default function MealPlanner() {
 
       <div style={{ textAlign: "center", marginBottom: 24 }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: "#333", marginBottom: 6 }}>어떤 식사를 계획하시나요? 🍽️</div>
-        <div style={{ fontSize: 13, color: "#aaa", lineHeight: 1.7 }}>필요한 식사만 선택하면 식단이 더 간단해져요</div>
+        <div style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>필요한 식사만 선택하면 식단이 더 간단해져요</div>
       </div>
 
       {/* Meal selection */}
       <div style={{ background: "#fff", borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: "0 2px 14px rgba(255,107,107,0.08)", border: "1px solid #ffe4e0" }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#e55", marginBottom: 4 }}>🍽️ 식사 선택</div>
-        <div style={{ fontSize: 11, color: "#ccc", marginBottom: 12 }}>복수 선택 가능</div>
+        <div style={{ fontSize: 13, color: "#777", marginBottom: 12, fontWeight: 500 }}>복수 선택 가능</div>
         <div style={{ display: "flex", gap: 8 }}>
           {MEALS.map(m => {
             const info = ms(m);
@@ -706,18 +706,18 @@ export default function MealPlanner() {
           })}
         </div>
         {selectedMeals.length === 0 && (
-          <div style={{ marginTop: 10, fontSize: 11, color: "#ef4444", textAlign: "center" }}>최소 1개 이상 선택해주세요</div>
+          <div style={{ marginTop: 10, fontSize: 13, color: "#ef4444", textAlign: "center", fontWeight: 600 }}>최소 1개 이상 선택해주세요</div>
         )}
       </div>
 
       {/* Food preferences */}
       <div style={{ background: "#fff", borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: "0 2px 14px rgba(255,107,107,0.07)", border: "1px solid #ffe4e0" }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#e55", marginBottom: 2 }}>좋아하는 음식이 있나요?</div>
-        <div style={{ fontSize: 11, color: "#ccc", marginBottom: 10 }}>여러 개 선택 가능 · 없으면 전체 반영</div>
+        <div style={{ fontSize: 13, color: "#777", marginBottom: 10, fontWeight: 500 }}>여러 개 선택 가능 · 없으면 전체 반영</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
           {FOOD_PREFS.map(f => (
             <button key={f.id} onClick={() => toggleArr(setFoods, f.id, "mp_foods")}
-              style={{ padding: "7px 11px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: selectedFoods.includes(f.id) ? "#ff6b6b" : "#fff8f0", color: selectedFoods.includes(f.id) ? "#fff" : "#999", border: selectedFoods.includes(f.id) ? "1px solid #ff6b6b" : "1px solid #eee", fontWeight: selectedFoods.includes(f.id) ? 700 : 400 }}>
+              style={{ padding: "8px 13px", borderRadius: 20, fontSize: 13, cursor: "pointer", fontFamily: "inherit", background: selectedFoods.includes(f.id) ? "#ff6b6b" : "#fff8f0", color: selectedFoods.includes(f.id) ? "#fff" : "#666", border: selectedFoods.includes(f.id) ? "1px solid #ff6b6b" : "1px solid #ddd", fontWeight: selectedFoods.includes(f.id) ? 700 : 500 }}>
               {f.e} {f.id}
             </button>
           ))}
@@ -750,19 +750,19 @@ export default function MealPlanner() {
       {/* Info box */}
       <div style={{ background: "#fff8f0", border: "1.5px solid #ffd0b0", borderRadius: 14, padding: "14px 16px", marginBottom: 18, lineHeight: 1.9 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#c2410c", marginBottom: 2 }}>냉장고에 잠들어 있는 재료들을 깨워볼까요? 🥦</div>
-        <div style={{ fontSize: 12, color: "#999" }}>지금 있는 재료로 식단을 짜드려요!</div>
-        <div style={{ fontSize: 12, color: "#999" }}>없는 재료는 나중에 장보기 목록에서 쿠팡으로 바로 구매할 수 있어요 🛒</div>
+        <div style={{ fontSize: 13, color: "#555" }}>지금 있는 재료로 식단을 짜드려요!</div>
+        <div style={{ fontSize: 13, color: "#555" }}>없는 재료는 나중에 장보기 목록에서 쿠팡으로 바로 구매할 수 있어요 🛒</div>
       </div>
 
       {/* Ingredient groups */}
       <div style={{ background: "#fff", borderRadius: 18, padding: 16, marginBottom: 12, boxShadow: "0 2px 14px rgba(255,107,107,0.07)", border: "1px solid #ffe4e0" }}>
         {INGREDIENT_GROUPS.map(grp => (
           <div key={grp.group} style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", marginBottom: 7 }}>{grp.group}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 7 }}>{grp.group}</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {grp.items.map(item => (
                 <button key={item.n} onClick={() => toggleArr(setIngreds, item.n, "mp_ingreds")}
-                  style={{ padding: "6px 10px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontFamily: "inherit", background: selectedIngreds.includes(item.n) ? "#ff8e53" : "#fff8f0", color: selectedIngreds.includes(item.n) ? "#fff" : "#999", border: selectedIngreds.includes(item.n) ? "1px solid #ff8e53" : "1px solid #eee", fontWeight: selectedIngreds.includes(item.n) ? 700 : 400 }}>
+                  style={{ padding: "7px 11px", borderRadius: 20, fontSize: 13, cursor: "pointer", fontFamily: "inherit", background: selectedIngreds.includes(item.n) ? "#ff8e53" : "#fff8f0", color: selectedIngreds.includes(item.n) ? "#fff" : "#666", border: selectedIngreds.includes(item.n) ? "1px solid #ff8e53" : "1px solid #ddd", fontWeight: selectedIngreds.includes(item.n) ? 700 : 500 }}>
                   {item.e} {item.n}
                 </button>
               ))}
@@ -772,7 +772,7 @@ export default function MealPlanner() {
 
         {/* Custom input */}
         <div style={{ paddingTop: 12, borderTop: "1px dashed #f0e0d0" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", marginBottom: 7 }}>✏️ 직접 입력</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 7 }}>✏️ 직접 입력</div>
           <div style={{ display: "flex", gap: 8 }}>
             <input value={customInput} onChange={e => setCustomInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAddCustom()}
               placeholder="재료명 입력 후 추가"
@@ -799,10 +799,10 @@ export default function MealPlanner() {
       {/* Selected ingredients summary */}
       {selectedIngreds.length > 0 && (
         <div style={{ background: "linear-gradient(135deg,#fff8f0,#fff0f8)", border: "1px solid #ffd8d0", borderRadius: 14, padding: "11px 14px", marginBottom: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#e55", marginBottom: 7 }}>✅ 선택된 재료 ({selectedIngreds.length}개)</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#e55", marginBottom: 7 }}>✅ 선택된 재료 ({selectedIngreds.length}개)</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
             {selectedIngreds.map(i => (
-              <span key={i} style={{ background: "#fff", border: "1px solid #ffc0a0", borderRadius: 8, padding: "3px 9px", fontSize: 11, color: "#e55", display: "flex", alignItems: "center", gap: 3 }}>
+              <span key={i} style={{ background: "#fff", border: "1px solid #ffc0a0", borderRadius: 8, padding: "4px 10px", fontSize: 12, color: "#e55", display: "flex", alignItems: "center", gap: 3 }}>
                 {i}
                 <button onClick={() => setIngreds(prev => { const next = prev.filter(v => v !== i); safeSet("mp_ingreds", next); return next; })}
                   style={{ background: "none", border: "none", color: "#ffb0a0", cursor: "pointer", fontSize: 11, padding: 0 }}>×</button>
@@ -816,7 +816,7 @@ export default function MealPlanner() {
       {avoidedIngreds.length > 0 && (
         <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 14, padding: "10px 14px", marginBottom: 12, display: "flex", gap: 8, alignItems: "center" }}>
           <span style={{ fontSize: 16 }}>🙅</span>
-          <div style={{ fontSize: 11, color: "#b45309", fontWeight: 700 }}>기피 재료 제외 중: {[...new Set(avoidedIngreds)].join(", ")}</div>
+          <div style={{ fontSize: 13, color: "#b45309", fontWeight: 700 }}>기피 재료 제외 중: {[...new Set(avoidedIngreds)].join(", ")}</div>
         </div>
       )}
 
@@ -825,8 +825,8 @@ export default function MealPlanner() {
         <div style={{ background: "#fef2f2", border: "1.5px solid #fca5a5", borderRadius: 14, padding: "12px 14px", marginBottom: 12, display: "flex", gap: 10, alignItems: "flex-start" }}>
           <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#dc2626", marginBottom: 3 }}>알레르기 주의사항</div>
-            <div style={{ fontSize: 12, color: "#7f1d1d", lineHeight: 1.7 }}>심각한 알레르기가 있는 경우 반드시 전문의와 상담하세요.</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#dc2626", marginBottom: 3 }}>알레르기 주의사항</div>
+            <div style={{ fontSize: 13, color: "#7f1d1d", lineHeight: 1.7 }}>심각한 알레르기가 있는 경우 반드시 전문의와 상담하세요.</div>
           </div>
         </div>
       )}
@@ -860,12 +860,12 @@ export default function MealPlanner() {
           <span style={{ fontSize: 22 }}>🍱</span>
           <div>
             <div style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>우리 아이 주간 식단표</div>
-            <div style={{ color: "rgba(255,255,255,0.82)", fontSize: 11 }}>밥 · 국 · 반찬 2가지 균형 식단</div>
+            <div style={{ color: "rgba(255,255,255,0.92)", fontSize: 12 }}>밥 · 국 · 반찬 2가지 균형 식단</div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
-            <button onClick={() => { setOnboardingSlide(0); setShowOnboarding(true); }} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 11px", fontSize: 11, cursor: "pointer" }}>❓</button>
+            <button onClick={() => { setOnboardingSlide(0); setShowOnboarding(true); }} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 12px", fontSize: 12, cursor: "pointer" }}>❓</button>
             {(step === "planner" || step === "recipe") && (
-              <button onClick={() => setStep("profile")} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 11px", fontSize: 11, cursor: "pointer" }}>⚙️ 설정</button>
+              <button onClick={() => setStep("profile")} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 12px", fontSize: 12, cursor: "pointer" }}>⚙️ 설정</button>
             )}
           </div>
         </div>
@@ -875,7 +875,7 @@ export default function MealPlanner() {
       {(step === "planner" || step === "recipe") && (
         <div style={{ background: "#fff", borderBottom: "1px solid #f0f0f0", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <button onClick={() => setStep("profile")} style={{ background: "none", border: "none", color: "#ff6b6b", fontSize: 13, cursor: "pointer", fontFamily: "inherit", fontWeight: 600, padding: 0 }}>← 설정으로</button>
-          <div style={{ fontSize: 12, color: "#bbb" }}>{step === "planner" ? `${activeDay}요일 ${viewMode === "daily" ? "일간" : "주간"} 보기` : "조리법"}</div>
+          <div style={{ fontSize: 13, color: "#777" }}>{step === "planner" ? `${activeDay}요일 ${viewMode === "daily" ? "일간" : "주간"} 보기` : "조리법"}</div>
         </div>
       )}
 
@@ -907,8 +907,8 @@ export default function MealPlanner() {
               {/* 연령 배지 */}
               {selGroups.length > 0 && (
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-                  {selGroups.map(g => <div key={g.id} style={{ background: `${g.color}28`, border: `1px solid ${g.color}`, borderRadius: 20, padding: "3px 9px", fontSize: 11, fontWeight: 700, color: "#555" }}>{g.emoji} {g.label}</div>)}
-                  {selGroups.length > 1 && <div style={{ background: "#f3f4f6", borderRadius: 20, padding: "3px 9px", fontSize: 10, color: "#aaa" }}>평균 영양목표</div>}
+                  {selGroups.map(g => <div key={g.id} style={{ background: `${g.color}28`, border: `1px solid ${g.color}`, borderRadius: 20, padding: "4px 11px", fontSize: 12, fontWeight: 700, color: "#444" }}>{g.emoji} {g.label}</div>)}
+                  {selGroups.length > 1 && <div style={{ background: "#f3f4f6", borderRadius: 20, padding: "4px 11px", fontSize: 11, color: "#666" }}>평균 영양목표</div>}
                 </div>
               )}
 
@@ -933,7 +933,7 @@ export default function MealPlanner() {
                   <div ref={dailySaveRef} style={{ background: "#fff", borderRadius: 16, padding: "14px 12px", border: "1px solid #f0f0f0" }}>
                     <div style={{ textAlign: "center", marginBottom: 12 }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: "#ff6b6b" }}>🍱 우리 아이 주간 식단표</div>
-                      <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>{activeDay}요일 식단</div>
+                      <div style={{ fontSize: 13, color: "#666", marginTop: 2 }}>{activeDay}요일 식단</div>
                     </div>
 
                     {mealsInPlan.map(m => {
@@ -961,7 +961,7 @@ export default function MealPlanner() {
                               <span style={{ fontSize: 18, flexShrink: 0 }}>{emoji}</span>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontSize: 15, fontWeight: 700, color: "#222", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.name}</div>
-                                <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>{it.cal}kcal &nbsp;·&nbsp; 단백질 {it.nutrition?.protein ?? 0}g</div>
+                                <div style={{ fontSize: 13, color: "#555", marginTop: 2 }}>{it.cal}kcal &nbsp;·&nbsp; 단백질 {it.nutrition?.protein ?? 0}g</div>
                               </div>
                               <button onClick={() => { setViewRecipe(it); setStep("recipe"); }}
                                 style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 20, border: `1.5px solid ${mStyle.text}66`, background: "rgba(255,255,255,0.9)", color: mStyle.text, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
@@ -975,7 +975,7 @@ export default function MealPlanner() {
 
                     {/* 하루 영양 합계 */}
                     <div style={{ background: "#f8f8ff", borderRadius: 14, padding: "11px 13px", marginBottom: 10, border: "1px solid #ede9fe" }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#888", marginBottom: 10 }}>🧬 오늘 하루 영양 합계</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 10 }}>🧬 오늘 하루 영양 합계</div>
                       <div style={{ display: "flex", gap: 7 }}>
                         <NutriBar label="단백질" value={dailyNutri.protein} goal={mealGoal.protein * nMeals} unit="g"  color="#6366f1" />
                         <NutriBar label="칼슘"   value={dailyNutri.calcium} goal={mealGoal.calcium * nMeals} unit="mg" color="#22c55e" />
@@ -1023,7 +1023,7 @@ export default function MealPlanner() {
                       </div>
                       {selGroups.length > 0 && (
                         <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 12, justifyContent: "center" }}>
-                          {selGroups.map(g => <div key={g.id} style={{ background: `${g.color}28`, border: `1px solid ${g.color}`, borderRadius: 20, padding: "3px 9px", fontSize: 12, fontWeight: 700, color: "#555" }}>{g.emoji} {g.label}</div>)}
+                          {selGroups.map(g => <div key={g.id} style={{ background: `${g.color}28`, border: `1px solid ${g.color}`, borderRadius: 20, padding: "4px 11px", fontSize: 12, fontWeight: 700, color: "#444" }}>{g.emoji} {g.label}</div>)}
                         </div>
                       )}
                       {/* 7칸 그리드 — overflow 없음, minWidth로 전체 표시 보장 */}
@@ -1041,9 +1041,9 @@ export default function MealPlanner() {
                               const mStyle = ms(m);
                               return (
                                 <div key={m} style={{ marginBottom: 8 }}>
-                                  <div style={{ fontSize: 11, fontWeight: 700, color: mStyle.text, marginBottom: 3 }}>{mStyle.icon} {m}</div>
+                                  <div style={{ fontSize: 12, fontWeight: 700, color: mStyle.text, marginBottom: 3 }}>{mStyle.icon} {m}</div>
                                   {[meal.rice, meal.soup, ...meal.sides].filter(Boolean).map(item => (
-                                    <div key={item.name} style={{ fontSize: 11, color: "#555", lineHeight: 1.6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                    <div key={item.name} style={{ fontSize: 12, color: "#444", lineHeight: 1.6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                       · {item.name}
                                     </div>
                                   ))}
@@ -1090,7 +1090,7 @@ export default function MealPlanner() {
               <span style={{ fontSize: 18, flexShrink: 0 }}>📢</span>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#e55", marginBottom: 5 }}>쿠팡파트너스 수수료 고지</div>
-                <p style={{ fontSize: 12, color: "#666", lineHeight: 1.8, margin: 0 }}>
+                <p style={{ fontSize: 13, color: "#555", lineHeight: 1.8, margin: 0 }}>
                   본 서비스의 장보기 링크는 쿠팡파트너스 활동의 일환으로 운영되며, 이를 통해 일정액의 수수료를 제공받을 수 있습니다. 단, 상품 가격 및 구매 조건은 고객님께 동일하게 적용됩니다.
                 </p>
               </div>
@@ -1099,19 +1099,19 @@ export default function MealPlanner() {
               <div style={{ display: "flex" }}>
                 <button onClick={() => setStep("about")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
                   <div style={{ fontSize: 16, marginBottom: 3 }}>ℹ️</div>
-                  <div style={{ fontSize: 10, color: "#999", fontWeight: 600 }}>서비스 소개</div>
+                  <div style={{ fontSize: 12, color: "#555", fontWeight: 600 }}>서비스 소개</div>
                 </button>
                 <button onClick={() => setStep("terms")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
                   <div style={{ fontSize: 16, marginBottom: 3 }}>📄</div>
-                  <div style={{ fontSize: 10, color: "#999", fontWeight: 600 }}>이용약관</div>
+                  <div style={{ fontSize: 12, color: "#555", fontWeight: 600 }}>이용약관</div>
                 </button>
                 <button onClick={() => setStep("privacy")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
                   <div style={{ fontSize: 16, marginBottom: 3 }}>📋</div>
-                  <div style={{ fontSize: 10, color: "#999", fontWeight: 600 }}>개인정보처리방침</div>
+                  <div style={{ fontSize: 12, color: "#555", fontWeight: 600 }}>개인정보처리방침</div>
                 </button>
                 <a href="mailto:skatkdqla173123@gmail.com" style={{ flex: 1, padding: "12px 4px", background: "#fff", textDecoration: "none", display: "block", textAlign: "center" }}>
                   <div style={{ fontSize: 16, marginBottom: 3 }}>💬</div>
-                  <div style={{ fontSize: 10, color: "#999", fontWeight: 600 }}>문의하기</div>
+                  <div style={{ fontSize: 12, color: "#555", fontWeight: 600 }}>문의하기</div>
                 </a>
               </div>
             </div>
