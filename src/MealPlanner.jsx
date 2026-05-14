@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { DAYS, MEALS, FOOD_PREFS, INGREDIENT_GROUPS, AGE_GROUPS, ALLERGY_OPTIONS } from "./data/constants";
 import { calcMealGoal, fmtN } from "./utils/nutrition";
 import { getMinAgeIndex, generateWeekPlan, pickOne, pickTwoSides, handleReplaceItem } from "./utils/mealPicker";
@@ -198,6 +198,7 @@ export default function MealPlanner() {
   const [loadingFade,    setLoadingFade]   = useState(true);
   const [showWeeklyShop, setShowWeeklyShop] = useState(false);
   const [checkedItems,   setCheckedItems]  = useState(() => { try { return JSON.parse(localStorage.getItem("mp_checked") || "[]"); } catch { return []; } });
+  const [viewMode,       setViewMode]      = useState("daily"); // "daily" | "weekly"
 
   // ── onboarding ────────────────────────────────────────────────────────────
   const [showOnboarding,  setShowOnboarding]  = useState(() => !localStorage.getItem("mp_onboarding_done"));
@@ -236,6 +237,39 @@ export default function MealPlanner() {
     return next;
   });
   const ms = m => MEAL_INFO[m] || MEAL_INFO["저녁"];
+
+  const dailySaveRef  = useRef(null);
+  const weeklySaveRef = useRef(null);
+
+  const handleSaveImage = async (ref, filename) => {
+    try {
+      const { default: html2canvas } = await import("html2canvas");
+      const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch {
+      alert("이미지 저장에 실패했어요. 다시 시도해주세요.");
+    }
+  };
+
+  const handleRegenDay = () => {
+    const minAgeIndex = getMinAgeIndex(selectedAges);
+    setWeekPlan(prev => {
+      if (!prev?.[activeDay]) return prev;
+      const next = JSON.parse(JSON.stringify(prev));
+      mealsInPlan.forEach(m => {
+        if (!next[activeDay][m]) return;
+        const rice  = pickOne(RICE_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
+        const soup  = pickOne(SOUP_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
+        const sides = pickTwoSides(selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
+        next[activeDay][m] = { rice, soup, sides };
+      });
+      safeSet("mp_weekplan", next);
+      return next;
+    });
+  };
 
   // ── onboarding render ─────────────────────────────────────────────────────
   const finishOnboarding = () => {
@@ -810,7 +844,7 @@ export default function MealPlanner() {
       {(step === "planner" || step === "recipe") && (
         <div style={{ background: "#fff", borderBottom: "1px solid #f0f0f0", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <button onClick={() => setStep("profile")} style={{ background: "none", border: "none", color: "#ff6b6b", fontSize: 13, cursor: "pointer", fontFamily: "inherit", fontWeight: 600, padding: 0 }}>← 설정으로</button>
-          <div style={{ fontSize: 12, color: "#bbb" }}>{step === "planner" ? `${activeDay}요일 ${safeMeal}` : "조리법"}</div>
+          <div style={{ fontSize: 12, color: "#bbb" }}>{step === "planner" ? `${activeDay}요일 ${viewMode === "daily" ? "일간" : "주간"} 보기` : "조리법"}</div>
         </div>
       )}
 
@@ -821,60 +855,180 @@ export default function MealPlanner() {
 
         {/* Planner */}
         {step === "planner" && weekPlan && (() => {
-          const meal = weekPlan[activeDay]?.[safeMeal];
-          if (!meal) return null;
-          const nutri = [meal.rice, meal.soup, ...meal.sides].filter(Boolean).reduce((acc, item) => ({
-            protein: acc.protein + (item.nutrition?.protein || 0),
-            calcium: acc.calcium + (item.nutrition?.calcium || 0),
-            iron:    acc.iron    + (item.nutrition?.iron    || 0),
-            vitC:    acc.vitC    + (item.nutrition?.vitC    || 0),
-            fiber:   acc.fiber   + (item.nutrition?.fiber   || 0),
-            cal:     acc.cal     + (item.cal || 0),
-          }), { protein: 0, calcium: 0, iron: 0, vitC: 0, fiber: 0, cal: 0 });
-          const style = ms(safeMeal);
           const selGroups = AGE_GROUPS.filter(g => selectedAges.includes(g.id));
+          const nMeals    = mealsInPlan.length || 1;
+
+          const dailyNutri = mealsInPlan.reduce((acc, m) => {
+            const meal = weekPlan[activeDay]?.[m];
+            if (!meal) return acc;
+            return [meal.rice, meal.soup, ...meal.sides].filter(Boolean).reduce((a, item) => ({
+              protein: a.protein + (item.nutrition?.protein || 0),
+              calcium: a.calcium + (item.nutrition?.calcium || 0),
+              iron:    a.iron    + (item.nutrition?.iron    || 0),
+              vitC:    a.vitC    + (item.nutrition?.vitC    || 0),
+              fiber:   a.fiber   + (item.nutrition?.fiber   || 0),
+              cal:     a.cal     + (item.cal || 0),
+            }), acc);
+          }, { protein: 0, calcium: 0, iron: 0, vitC: 0, fiber: 0, cal: 0 });
+
           return (
             <div>
+              {/* 연령 배지 */}
               {selGroups.length > 0 && (
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
                   {selGroups.map(g => <div key={g.id} style={{ background: `${g.color}28`, border: `1px solid ${g.color}`, borderRadius: 20, padding: "3px 9px", fontSize: 11, fontWeight: 700, color: "#555" }}>{g.emoji} {g.label}</div>)}
                   {selGroups.length > 1 && <div style={{ background: "#f3f4f6", borderRadius: 20, padding: "3px 9px", fontSize: 10, color: "#aaa" }}>평균 영양목표</div>}
                 </div>
               )}
-              <div style={{ display: "flex", gap: 5, marginBottom: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+
+              {/* 일간/주간 토글 */}
+              <div style={{ display: "flex", background: "#f0f0f0", borderRadius: 12, padding: 3, marginBottom: 12 }}>
+                {[["daily","📅 일간 보기"],["weekly","📋 주간 보기"]].map(([mode, label]) => (
+                  <button key={mode} onClick={() => setViewMode(mode)}
+                    style={{ flex: 1, padding: "8px", borderRadius: 10, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, background: viewMode === mode ? "#ff6b6b" : "transparent", color: viewMode === mode ? "#fff" : "#999", transition: "all 0.15s" }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* 요일 탭 */}
+              <div style={{ display: "flex", gap: 5, marginBottom: 12, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
                 {DAYS.map(d => <button key={d} onClick={() => setActiveDay(d)} style={{ minWidth: 36, padding: "6px 8px", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, background: activeDay === d ? "#ff6b6b" : "#fff", color: activeDay === d ? "#fff" : "#ccc", border: activeDay === d ? "1px solid #ff6b6b" : "1px solid #eee", boxShadow: activeDay === d ? "0 2px 8px rgba(255,107,107,0.28)" : "none" }}>{d}</button>)}
               </div>
-              <div style={{ display: "flex", gap: 7, marginBottom: 12 }}>
-                {mealsInPlan.map(m => { const s = ms(m); return <button key={m} onClick={() => setActiveMeal(m)} style={{ flex: 1, padding: "8px 0", borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", background: safeMeal === m ? s.badge : "#fff", color: safeMeal === m ? s.text : "#ccc", border: safeMeal === m ? `1.5px solid ${s.text}55` : "1px solid #eee" }}>{s.icon} {m}</button>; })}
-              </div>
-              <div style={{ background: style.bg, borderRadius: 16, padding: "11px 15px", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", border: `1px solid ${style.text}22` }}>
-                <div>
-                  <div style={{ fontSize: 10, color: "#aaa" }}>{activeDay}요일 {safeMeal} 총 열량</div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: style.text }}>{nutri.cal} <span style={{ fontSize: 12, fontWeight: 400 }}>kcal</span></div>
-                  <div style={{ fontSize: 10, color: "#bbb", marginTop: 1 }}>밥+국+반찬2가지 · 1인분 기준</div>
-                </div>
-                <span style={{ fontSize: 28 }}>{style.icon}</span>
-              </div>
-              <div style={{ background: "#fff", borderRadius: 16, padding: "12px 14px", marginBottom: 11, border: "1px solid #f0f0f0" }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#999", marginBottom: 9 }}>🧬 한 끼 영양 충족률</div>
-                <div style={{ display: "flex", gap: 7 }}>
-                  <NutriBar label="단백질" value={nutri.protein} goal={mealGoal.protein} unit="g"  color="#6366f1" />
-                  <NutriBar label="칼슘"   value={nutri.calcium} goal={mealGoal.calcium} unit="mg" color="#22c55e" />
-                  <NutriBar label="철분"   value={nutri.iron}    goal={mealGoal.iron}    unit="mg" color="#f59e0b" />
-                  <NutriBar label="비타민C" value={nutri.vitC}   goal={mealGoal.vitC}    unit="mg" color="#ef4444" />
-                  <NutriBar label="식이섬유" value={nutri.fiber} goal={mealGoal.fiber}   unit="g"  color="#8b5cf6" />
-                </div>
-              </div>
-              <MealItemCard emoji="🍚" label="밥 / 덮밥"  item={meal.rice} color="#f97316" onRecipe={() => { setViewRecipe(meal.rice); setStep("recipe"); }} onReplace={() => onReplaceItem("rice")} />
-              <MealItemCard emoji="🍲" label="국 / 찌개"  item={meal.soup} color="#3b82f6" onRecipe={() => { setViewRecipe(meal.soup); setStep("recipe"); }} onReplace={() => onReplaceItem("soup")} />
-              {meal.sides.map((side, i) => (
-                <MealItemCard key={i} emoji="🥗" label={`반찬 ${i + 1} (${side.nutriType})`} item={side} color={i === 0 ? "#8b5cf6" : "#22c55e"} onRecipe={() => { setViewRecipe(side); setStep("recipe"); }} onReplace={() => onReplaceItem(`side${i}`)} />
-              ))}
-              <ShoppingList meal={meal} weekPlan={weekPlan} showWeeklyShop={showWeeklyShop} setShowWeeklyShop={setShowWeeklyShop} checkedItems={checkedItems} toggleCheck={toggleCheck} onClear={() => setCheckedItems([])} />
-              <button onClick={handleRegenMeal} style={{ width: "100%", padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "#fff", color: "#ff6b6b", border: "2px solid #ff6b6b", cursor: "pointer", fontFamily: "inherit" }}>🔄 이 끼니 다시 뽑기</button>
 
-              {/* 영양 가이드 */}
-              <NutritionGuide />
+              {viewMode === "daily" ? (
+                /* ── 일간 보기 ── */
+                <div>
+                  <div ref={dailySaveRef} style={{ background: "#fff", borderRadius: 16, padding: "14px 12px", border: "1px solid #f0f0f0" }}>
+                    <div style={{ textAlign: "center", marginBottom: 12 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: "#ff6b6b" }}>🍱 우리 아이 주간 식단표</div>
+                      <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>{activeDay}요일 식단</div>
+                    </div>
+
+                    {mealsInPlan.map(m => {
+                      const meal = weekPlan[activeDay]?.[m];
+                      if (!meal) return null;
+                      const mStyle = ms(m);
+                      const mealCal = [meal.rice, meal.soup, ...meal.sides].filter(Boolean)
+                        .reduce((acc, item) => acc + (item.cal || 0), 0);
+                      const items = [
+                        { emoji: "🍚", label: "밥",    item: meal.rice },
+                        { emoji: "🍲", label: "국",    item: meal.soup },
+                        ...meal.sides.map((s, i) => ({ emoji: "🥗", label: `반찬${i + 1}`, item: s })),
+                      ];
+                      return (
+                        <div key={m} style={{ background: mStyle.bg, borderRadius: 14, padding: "11px 13px", marginBottom: 10, border: `1px solid ${mStyle.text}22` }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span style={{ fontSize: 18 }}>{mStyle.icon}</span>
+                              <span style={{ fontSize: 14, fontWeight: 700, color: mStyle.text }}>{m}</span>
+                            </div>
+                            <span style={{ fontSize: 11, color: "#aaa" }}>합계 {mealCal}kcal</span>
+                          </div>
+                          {items.map(({ emoji, label, item: it }) => it && (
+                            <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderTop: "1px solid rgba(0,0,0,0.05)" }}>
+                              <span style={{ fontSize: 13, flexShrink: 0 }}>{emoji}</span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: "#333", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.name}</div>
+                                <div style={{ fontSize: 10, color: "#aaa" }}>{it.cal}kcal · 단백질 {it.nutrition?.protein ?? 0}g</div>
+                              </div>
+                              <button onClick={() => { setViewRecipe(it); setStep("recipe"); }}
+                                style={{ flexShrink: 0, padding: "4px 10px", borderRadius: 20, border: `1px solid ${mStyle.text}55`, background: "rgba(255,255,255,0.85)", color: mStyle.text, fontSize: 10, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                                조리법
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+
+                    {/* 하루 영양 합계 */}
+                    <div style={{ background: "#f8f8ff", borderRadius: 14, padding: "11px 13px", marginBottom: 10, border: "1px solid #ede9fe" }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#999", marginBottom: 8 }}>🧬 오늘 하루 영양 합계</div>
+                      <div style={{ display: "flex", gap: 7 }}>
+                        <NutriBar label="단백질" value={dailyNutri.protein} goal={mealGoal.protein * nMeals} unit="g"  color="#6366f1" />
+                        <NutriBar label="칼슘"   value={dailyNutri.calcium} goal={mealGoal.calcium * nMeals} unit="mg" color="#22c55e" />
+                        <NutriBar label="철분"   value={dailyNutri.iron}    goal={mealGoal.iron * nMeals}    unit="mg" color="#f59e0b" />
+                        <NutriBar label="비타민C" value={dailyNutri.vitC}   goal={mealGoal.vitC * nMeals}    unit="mg" color="#ef4444" />
+                        <NutriBar label="식이섬유" value={dailyNutri.fiber} goal={mealGoal.fiber * nMeals}   unit="g"  color="#8b5cf6" />
+                      </div>
+                    </div>
+
+                    {/* 워터마크 */}
+                    <div style={{ textAlign: "center", paddingTop: 6, fontSize: 10, color: "#ccc" }}>
+                      우리아이 식단표 앱 · meal-planner-iota-nine.vercel.app
+                    </div>
+                  </div>
+
+                  {/* 장보기 목록 */}
+                  <ShoppingList meal={weekPlan[activeDay]?.[mealsInPlan[0]]} weekPlan={weekPlan} showWeeklyShop={showWeeklyShop} setShowWeeklyShop={setShowWeeklyShop} checkedItems={checkedItems} toggleCheck={toggleCheck} onClear={() => setCheckedItems([])} />
+
+                  {/* 버튼 */}
+                  <div style={{ display: "flex", gap: 8, marginTop: 4, marginBottom: 12 }}>
+                    <button onClick={handleRegenDay}
+                      style={{ flex: 1, padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "#fff", color: "#ff6b6b", border: "2px solid #ff6b6b", cursor: "pointer", fontFamily: "inherit" }}>
+                      🔄 오늘 다시 뽑기
+                    </button>
+                    <button onClick={() => handleSaveImage(dailySaveRef, `식단표_${activeDay}요일.png`)}
+                      style={{ flex: 1, padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 12px rgba(255,107,107,0.3)" }}>
+                      📸 오늘 식단 저장
+                    </button>
+                  </div>
+
+                  <NutritionGuide />
+                </div>
+              ) : (
+                /* ── 주간 보기 ── */
+                <div>
+                  <div ref={weeklySaveRef} style={{ background: "#fff", borderRadius: 16, padding: "14px 10px", border: "1px solid #f0f0f0" }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#e55", marginBottom: 10, textAlign: "center" }}>
+                      🍱 우리 아이 주간 식단표
+                    </div>
+                    {selGroups.length > 0 && (
+                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 10, justifyContent: "center" }}>
+                        {selGroups.map(g => <div key={g.id} style={{ background: `${g.color}28`, border: `1px solid ${g.color}`, borderRadius: 20, padding: "2px 7px", fontSize: 10, fontWeight: 700, color: "#555" }}>{g.emoji} {g.label}</div>)}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", gap: 5, overflowX: "auto", paddingBottom: 4 }}>
+                      {DAYS.map(day => (
+                        <div key={day}
+                          onClick={() => { setActiveDay(day); setViewMode("daily"); }}
+                          style={{ minWidth: 88, flex: "0 0 88px", background: day === activeDay ? "#fff0ee" : "#fafafa", borderRadius: 12, padding: "8px 7px", border: day === activeDay ? "1.5px solid #ff8e53" : "1px solid #eee", cursor: "pointer" }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: day === activeDay ? "#ff6b6b" : "#bbb", textAlign: "center", marginBottom: 6, paddingBottom: 4, borderBottom: `1px solid ${day === activeDay ? "#ffd0b0" : "#eee"}` }}>
+                            {day}요일
+                          </div>
+                          {mealsInPlan.map(m => {
+                            const meal = weekPlan[day]?.[m];
+                            if (!meal) return null;
+                            const mStyle = ms(m);
+                            return (
+                              <div key={m} style={{ marginBottom: 6 }}>
+                                <div style={{ fontSize: 9, fontWeight: 700, color: mStyle.text, marginBottom: 2 }}>{mStyle.icon} {m}</div>
+                                {[meal.rice, meal.soup, ...meal.sides].filter(Boolean).map(item => (
+                                  <div key={item.name} style={{ fontSize: 9, color: "#666", lineHeight: 1.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                    · {item.name}
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                    {/* 워터마크 */}
+                    <div style={{ textAlign: "center", paddingTop: 10, fontSize: 10, color: "#ccc" }}>
+                      우리아이 식단표 앱 · meal-planner-iota-nine.vercel.app
+                    </div>
+                  </div>
+
+                  <button onClick={() => handleSaveImage(weeklySaveRef, "주간_식단표.png")}
+                    style={{ width: "100%", marginTop: 10, padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 12px rgba(255,107,107,0.3)" }}>
+                    📸 주간 식단 저장
+                  </button>
+
+                  <NutritionGuide />
+                </div>
+              )}
             </div>
           );
         })()}
