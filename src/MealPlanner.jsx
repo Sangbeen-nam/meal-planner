@@ -667,6 +667,8 @@ export default function MealPlanner() {
             다음 →
           </button>
         </div>
+
+        <NutritionGuide />
       </div>
     );
   };
@@ -735,6 +737,27 @@ export default function MealPlanner() {
           다음 →
         </button>
       </div>
+
+      {/* 끼니별 영양 포인트 */}
+      <div style={{ marginTop: 20 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: "#d94f00", marginBottom: 8 }}>⏰ 끼니별 영양 포인트</div>
+        <div style={{ fontSize: 13, color: "#666", marginBottom: 12 }}>각 끼니는 아이의 성장과 학습에 서로 다른 역할을 해요.</div>
+        {[
+          { icon: "🌅", meal: "아침", bg: "#fffbeb", border: "#fde68a", text: "#92400e", tip: "아침 결식은 집중력·기억력 저하로 이어져요.", detail: "복합 탄수화물(잡곡밥, 고구마)과 단백질(달걀, 두유)을 함께 제공하면 혈당이 안정적으로 유지되어 오전 내내 집중력이 높아집니다." },
+          { icon: "☀️", meal: "점심", bg: "#f0fdf4", border: "#bbf7d0", text: "#14532d", tip: "하루 에너지의 30~35%를 점심 한 끼에 채워요.", detail: "밥·국·반찬 2가지로 구성된 균형식이 이상적입니다. 철분과 아연이 풍부한 쇠고기, 굴, 견과류를 활용해 보세요." },
+          { icon: "🌙", meal: "저녁", bg: "#eff6ff", border: "#bfdbfe", text: "#1e3a8a", tip: "소화를 돕고 수면 질을 높이는 저녁 식단이 중요해요.", detail: "트립토판이 풍부한 두부, 바나나, 우유는 숙면을 돕고 성장호르몬 분비를 촉진합니다. 튀긴 음식보다 찜·조림 요리를 권장해요." },
+        ].map(({ icon, meal, bg, border, text, tip, detail }) => (
+          <div key={meal} style={{ background: bg, border: `1px solid ${border}`, borderRadius: 14, padding: "13px 14px", marginBottom: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: 20 }}>{icon}</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: text }}>{meal} — {tip}</span>
+            </div>
+            <div style={{ fontSize: 12, color: "#555", lineHeight: 1.75 }}>{detail}</div>
+          </div>
+        ))}
+      </div>
+
+      <NutritionGuide />
     </div>
   );
 
@@ -842,6 +865,30 @@ export default function MealPlanner() {
           ✨ 우리 아이 맞춤 식단 완성하기!
         </button>
       </div>
+
+      {/* 재료별 핵심 영양 정보 */}
+      <div style={{ marginTop: 20 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: "#d94f00", marginBottom: 8 }}>🥦 재료별 핵심 영양 정보</div>
+        <div style={{ fontSize: 13, color: "#666", marginBottom: 12 }}>냉장고 재료를 선택할 때 알아두면 유용한 영양 정보예요.</div>
+        {[
+          { emoji: "🥕", name: "당근", tip: "베타카로틴이 풍부해 면역력과 시력 발달에 도움. 기름과 함께 조리하면 흡수율이 높아져요." },
+          { emoji: "🥦", name: "브로콜리", tip: "비타민C가 레몬의 2배, 칼슘·철분도 풍부. 살짝 데쳐 먹으면 영양 손실이 적어요." },
+          { emoji: "🥚", name: "달걀", tip: "단백질·철분·아연이 골고루 들어있는 완전식품. 하루 1개면 충분한 영양을 보충할 수 있어요." },
+          { emoji: "🐟", name: "생선류", tip: "EPA·DHA가 뇌 발달과 집중력에 도움. 주 2회 이상 식탁에 올려보세요." },
+          { emoji: "🫘", name: "두부·콩류", tip: "식물성 단백질과 칼슘의 훌륭한 공급원. 유제품을 못 먹는 아이에게 좋은 대안이에요." },
+          { emoji: "🍄", name: "버섯", tip: "식이섬유·비타민D가 풍부. 장 건강과 면역력 증진에 효과적이에요." },
+        ].map(({ emoji, name, tip }) => (
+          <div key={name} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "9px 12px", background: "#f9fafb", borderRadius: 12, marginBottom: 6, border: "1px solid #f0f0f0" }}>
+            <span style={{ fontSize: 22, flexShrink: 0 }}>{emoji}</span>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#444", marginBottom: 2 }}>{name}</div>
+              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.65 }}>{tip}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <NutritionGuide />
     </div>
   );
 
@@ -1086,15 +1133,35 @@ export default function MealPlanner() {
         {/* Footer */}
         {step !== "privacy" && step !== "about" && step !== "terms" && (
           <div style={{ marginTop: 20 }}>
-            <div style={{ background: "#fff8f0", border: "1px solid #ffd0b0", borderRadius: 12, padding: "12px 16px", marginBottom: 12, display: "flex", gap: 10, alignItems: "flex-start" }}>
+            {/* 서비스 안내 */}
+            <div style={{ background: "#f8f9ff", border: "1px solid #e0e7ff", borderRadius: 14, padding: "14px 16px", marginBottom: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#4f46e5", marginBottom: 6 }}>ℹ️ 우리아이 식단표 서비스 안내</div>
+              <p style={{ fontSize: 12, color: "#555", lineHeight: 1.8, margin: 0 }}>
+                본 서비스는 영아(0~2세)부터 청소년(12~18세)까지 연령별 맞춤 주간 식단을 무료로 생성해드립니다.
+                한국 영양학회 기준을 참고하여 밥·국·반찬 2가지 균형 식단을 제공하며, 알레르기 자동 필터 및 장보기 목록 기능을 포함합니다.
+              </p>
+            </div>
+            {/* 쿠팡파트너스 고지 */}
+            <div style={{ background: "#fff8f0", border: "1px solid #ffd0b0", borderRadius: 12, padding: "12px 16px", marginBottom: 10, display: "flex", gap: 10, alignItems: "flex-start" }}>
               <span style={{ fontSize: 18, flexShrink: 0 }}>📢</span>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#e55", marginBottom: 5 }}>쿠팡파트너스 수수료 고지</div>
-                <p style={{ fontSize: 13, color: "#555", lineHeight: 1.8, margin: 0 }}>
-                  본 서비스의 장보기 링크는 쿠팡파트너스 활동의 일환으로 운영되며, 이를 통해 일정액의 수수료를 제공받을 수 있습니다. 단, 상품 가격 및 구매 조건은 고객님께 동일하게 적용됩니다.
+                <p style={{ fontSize: 12, color: "#555", lineHeight: 1.8, margin: 0 }}>
+                  본 서비스의 장보기 링크는 쿠팡파트너스 활동의 일환으로 운영되며, 이를 통해 일정액의 수수료를 제공받습니다. 단, 상품 가격 및 구매 조건은 고객님께 동일하게 적용됩니다.
                 </p>
               </div>
             </div>
+            {/* 의료 면책 */}
+            <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: "10px 14px", marginBottom: 10 }}>
+              <p style={{ fontSize: 12, color: "#78350f", lineHeight: 1.8, margin: 0 }}>
+                ⚠️ <strong>의료 면책:</strong> 본 서비스의 식단 정보는 일반적인 참고 자료이며 의학적·영양학적 전문 진단을 대체하지 않습니다. 심각한 알레르기나 질환이 있는 경우 반드시 전문의와 상담하세요.
+              </p>
+            </div>
+            {/* 운영자 정보 */}
+            <div style={{ textAlign: "center", padding: "8px 0", marginBottom: 8 }}>
+              <div style={{ fontSize: 11, color: "#aaa" }}>운영자: 남상빈 · <a href="mailto:skatkdqla173123@gmail.com" style={{ color: "#ff6b6b", textDecoration: "none" }}>skatkdqla173123@gmail.com</a></div>
+            </div>
+            {/* 메뉴 버튼 */}
             <div style={{ background: "#fff", borderRadius: 14, overflow: "hidden", border: "1px solid #eee" }}>
               <div style={{ display: "flex" }}>
                 <button onClick={() => setStep("about")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
