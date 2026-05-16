@@ -103,7 +103,7 @@ export default function AboutPage({ onBack }) {
           <div style={{ fontSize: 12, color: "#666", lineHeight: 2 }}>
             <div>운영자: 남상빈</div>
             <div>이메일: <a href="mailto:skatkdqla173123@gmail.com" style={{ color: "#ff6b6b" }}>skatkdqla173123@gmail.com</a></div>
-            <div>서비스 주소: meal-planner-iota-nine.vercel.app</div>
+            <div>서비스 주소: meal-planner-sage-iota.vercel.app</div>
             <div>서비스 시작: 2026년</div>
           </div>
         </div>
