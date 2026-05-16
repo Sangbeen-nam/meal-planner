@@ -93,7 +93,7 @@ export function ShoppingList({ meal, weekPlan, showWeeklyShop, setShowWeeklyShop
           </div>
 
           <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px dashed #fde8c0", fontSize: 10, color: "#d4a06a", lineHeight: 1.6 }}>
-            ※ 위 링크는 쿠팡파트너스 활동의 일환으로, 이를 통해 일정액의 수수료를 제공받을 수 있습니다.
+            ※ 위 링크는 쿠팡파트너스 활동의 일환으로, 이를 통해 일정액의 수수료를 제공받습니다.
           </div>
         </div>
       )}
