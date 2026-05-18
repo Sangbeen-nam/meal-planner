@@ -488,11 +488,11 @@ export default function MealPlanner() {
     });
   };
 
-  const onReplaceItem = (type) => {
-    if (!weekPlan?.[activeDay]?.[activeMeal]) return;
+  const onReplaceItem = (type, mealKey = activeMeal) => {
+    if (!weekPlan?.[activeDay]?.[mealKey]) return;
     const minAgeIndex = getMinAgeIndex(selectedAges);
     setWeekPlan(prev => {
-      const next = handleReplaceItem(prev, activeDay, activeMeal, type, selectedFoods, selectedIngreds, minAgeIndex, allergenIngredients, avoidedIngreds);
+      const next = handleReplaceItem(prev, activeDay, mealKey, type, selectedFoods, selectedIngreds, minAgeIndex, allergenIngredients, avoidedIngreds);
       safeSet("mp_weekplan", next);
       return next;
     });
@@ -992,9 +992,9 @@ export default function MealPlanner() {
                       const mealCal = [meal.rice, meal.soup, ...meal.sides].filter(Boolean)
                         .reduce((acc, item) => acc + (item.cal || 0), 0);
                       const items = [
-                        { emoji: "🍚", label: "밥",    item: meal.rice },
-                        { emoji: "🍲", label: "국",    item: meal.soup },
-                        ...meal.sides.map((s, i) => ({ emoji: "🥗", label: `반찬${i + 1}`, item: s })),
+                        { emoji: "🍚", label: "밥",    item: meal.rice,  type: "rice" },
+                        { emoji: "🍲", label: "국",    item: meal.soup,  type: "soup" },
+                        ...meal.sides.map((s, i) => ({ emoji: "🥗", label: `반찬${i + 1}`, item: s, type: `side${i}` })),
                       ];
                       return (
                         <div key={m} style={{ background: mStyle.bg, borderRadius: 14, padding: "13px 14px", marginBottom: 12, border: `1px solid ${mStyle.text}22` }}>
@@ -1005,17 +1005,23 @@ export default function MealPlanner() {
                             </div>
                             <span style={{ fontSize: 13, color: "#888", fontWeight: 600 }}>합계 {mealCal}kcal</span>
                           </div>
-                          {items.map(({ emoji, label, item: it }) => it && (
+                          {items.map(({ emoji, label, item: it, type }) => it && (
                             <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
                               <span style={{ fontSize: 18, flexShrink: 0 }}>{emoji}</span>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontSize: 15, fontWeight: 700, color: "#222", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.name}</div>
                                 <div style={{ fontSize: 13, color: "#555", marginTop: 2 }}>{it.cal}kcal &nbsp;·&nbsp; 단백질 {it.nutrition?.protein ?? 0}g</div>
                               </div>
-                              <button onClick={() => { setViewRecipe(it); setStep("recipe"); }}
-                                style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 20, border: `1.5px solid ${mStyle.text}66`, background: "rgba(255,255,255,0.9)", color: mStyle.text, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                                조리법
-                              </button>
+                              <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
+                                <button onClick={() => onReplaceItem(type, m)} title="이 메뉴만 교체"
+                                  style={{ padding: "6px 9px", borderRadius: 20, border: "1px solid #e5e7eb", background: "#f3f4f6", color: "#888", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                                  🔄
+                                </button>
+                                <button onClick={() => { setViewRecipe(it); setStep("recipe"); }}
+                                  style={{ padding: "6px 14px", borderRadius: 20, border: `1.5px solid ${mStyle.text}66`, background: "rgba(255,255,255,0.9)", color: mStyle.text, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                                  조리법
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>
