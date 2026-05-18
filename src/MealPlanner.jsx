@@ -1013,9 +1013,9 @@ export default function MealPlanner() {
                                 <div style={{ fontSize: 13, color: "#555", marginTop: 2 }}>{it.cal}kcal &nbsp;·&nbsp; 단백질 {it.nutrition?.protein ?? 0}g</div>
                               </div>
                               <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
-                                <button onClick={() => onReplaceItem(type, m)} title="이 메뉴만 교체"
-                                  style={{ padding: "6px 9px", borderRadius: 20, border: "1px solid #e5e7eb", background: "#f3f4f6", color: "#888", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
-                                  🔄
+                                <button onClick={() => onReplaceItem(type, m)}
+                                  style={{ padding: "6px 14px", borderRadius: 20, border: "1.5px solid #e5e7eb", background: "#f3f4f6", color: "#888", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                                  🔄 이 메뉴만 교체
                                 </button>
                                 <button onClick={() => { setViewRecipe(it); setStep("recipe"); }}
                                   style={{ padding: "6px 14px", borderRadius: 20, border: `1.5px solid ${mStyle.text}66`, background: "rgba(255,255,255,0.9)", color: mStyle.text, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
