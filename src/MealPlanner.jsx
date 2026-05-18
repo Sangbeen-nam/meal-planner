@@ -267,18 +267,18 @@ export default function MealPlanner() {
       content: {
         title: '우리 아이 이번 주 식단표 완성! 🍱',
         description: '균형잡힌 한 주 식단을 클릭 한 번으로 완성했어요. 우리아이 식단표 앱으로 만들어보세요!',
-        imageUrl: 'https://meal-planner-sage-iota.vercel.app/og-image.png',
+        imageUrl: 'https://mealplanner365.co.kr/og-image.png',
         link: {
-          mobileWebUrl: 'https://meal-planner-sage-iota.vercel.app',
-          webUrl: 'https://meal-planner-sage-iota.vercel.app',
+          mobileWebUrl: 'https://mealplanner365.co.kr',
+          webUrl: 'https://mealplanner365.co.kr',
         },
       },
       buttons: [
         {
           title: '식단표 만들러 가기',
           link: {
-            mobileWebUrl: 'https://meal-planner-sage-iota.vercel.app',
-            webUrl: 'https://meal-planner-sage-iota.vercel.app',
+            mobileWebUrl: 'https://mealplanner365.co.kr',
+            webUrl: 'https://mealplanner365.co.kr',
           },
         },
       ],
@@ -1034,7 +1034,7 @@ export default function MealPlanner() {
 
                     {/* 워터마크 */}
                     <div style={{ textAlign: "center", paddingTop: 6, fontSize: 10, color: "#ccc" }}>
-                      우리아이 식단표 앱 · meal-planner-sage-iota.vercel.app
+                      우리아이 식단표 앱 · mealplanner365.co.kr
                     </div>
                   </div>
 
@@ -1102,7 +1102,7 @@ export default function MealPlanner() {
                       </div>
                       {/* 워터마크 */}
                       <div style={{ textAlign: "center", paddingTop: 12, fontSize: 11, color: "#ccc" }}>
-                        우리아이 식단표 앱 · meal-planner-sage-iota.vercel.app
+                        우리아이 식단표 앱 · mealplanner365.co.kr
                       </div>
                     </div>
                   </div>
