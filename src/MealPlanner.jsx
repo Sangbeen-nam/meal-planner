@@ -268,6 +268,8 @@ export default function MealPlanner() {
         title: '우리 아이 이번 주 식단표 완성! 🍱',
         description: '균형잡힌 한 주 식단을 클릭 한 번으로 완성했어요. 우리아이 식단표 앱으로 만들어보세요!',
         imageUrl: 'https://mealplanner365.co.kr/og-image.png',
+        imageWidth: 800,
+        imageHeight: 400,
         link: {
           mobileWebUrl: 'https://mealplanner365.co.kr',
           webUrl: 'https://mealplanner365.co.kr',
