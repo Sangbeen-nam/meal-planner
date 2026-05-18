@@ -271,6 +271,19 @@
       }
       #static-landing .step-item h3 { font-size: 13px; font-weight: 700; color: #333; margin-bottom: 3px; }
       #static-landing .step-item p { font-size: 12px; color: #777; line-height: 1.7; }
+      #static-landing .dish-item { padding: 14px 0; border-bottom: 1px solid #f5f5f5; }
+      #static-landing .dish-item:last-child { border-bottom: none; }
+      #static-landing .dish-header { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+      #static-landing .dish-name { font-size: 14px; font-weight: 700; color: #222; }
+      #static-landing .dish-badge { font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+      #static-landing .dish-nutri { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+      #static-landing .dish-nutri span { font-size: 11px; background: #f3f4ff; border: 1px solid #d4d7ff; border-radius: 6px; padding: 2px 8px; color: #4b51cc; font-weight: 600; }
+      #static-landing .dish-tip { font-size: 12px; color: #666; line-height: 1.8; }
+      #static-landing .dish-tip strong { color: #d94f00; }
+      #static-landing .tip-item { display: flex; gap: 12px; align-items: flex-start; padding: 13px; background: #f8fffe; border-radius: 12px; margin-bottom: 8px; border: 1px solid #d1fae5; }
+      #static-landing .tip-item .t-icon { font-size: 22px; flex-shrink: 0; }
+      #static-landing .tip-item h3 { font-size: 13px; font-weight: 700; color: #065f46; margin-bottom: 4px; }
+      #static-landing .tip-item p { font-size: 12px; color: #555; line-height: 1.75; }
       #static-landing .warning {
         background: #fffbeb;
         border: 1px solid #fde68a;
@@ -560,6 +573,206 @@
               </div>
             </li>
           </ul>
+        </section>
+
+        <!-- 인기 아이 반찬 10선 -->
+        <section class="card">
+          <h2>🍱 인기 아이 반찬 10선 — 영양 정보 & 조리 팁</h2>
+          <p style="font-size:12px;color:#aaa;margin-bottom:14px;">우리아이 식단표 DB에서 가장 많이 등장하는 반찬들의 영양 정보와 조리 팁을 정리했습니다.</p>
+
+          <div class="dish-item">
+            <div class="dish-header">
+              <span style="font-size:18px;">🥚</span>
+              <span class="dish-name">계란찜</span>
+              <span class="dish-badge" style="background:#fef9c3;color:#92400e;border:1px solid #fde68a;">영아부터 OK</span>
+            </div>
+            <div class="dish-nutri">
+              <span>단백질 12g</span><span>칼슘 52mg</span><span>철분 1.8mg</span><span>15분</span>
+            </div>
+            <p class="dish-tip">
+              부드럽고 소화가 쉬워 이유식을 갓 시작한 영아에게도 안성맞춤입니다. <strong>육수에 계란을 풀고 체에 걸러 기포를 제거하면</strong> 훨씬 부드러운 질감이 나옵니다. 브로콜리나 당근을 잘게 다져 넣으면 채소 거부감을 줄이는 데 도움이 됩니다.
+            </p>
+          </div>
+
+          <div class="dish-item">
+            <div class="dish-header">
+              <span style="font-size:18px;">🌿</span>
+              <span class="dish-name">시금치나물</span>
+              <span class="dish-badge" style="background:#dcfce7;color:#166534;border:1px solid #86efac;">철분·칼슘 풍부</span>
+            </div>
+            <div class="dish-nutri">
+              <span>단백질 3g</span><span>칼슘 102mg</span><span>철분 2.6mg</span><span>비타민C 28mg</span>
+            </div>
+            <p class="dish-tip">
+              철분과 칼슘이 동시에 풍부한 녹황색 채소의 대표입니다. <strong>비타민C가 풍부한 귤이나 파프리카와 함께 먹으면</strong> 철분 흡수율이 최대 3배 높아집니다. 데친 후 즉시 찬물에 담그면 선명한 초록색이 유지됩니다.
+            </p>
+          </div>
+
+          <div class="dish-item">
+            <div class="dish-header">
+              <span style="font-size:18px;">🐟</span>
+              <span class="dish-name">멸치볶음</span>
+              <span class="dish-badge" style="background:#fef9c3;color:#92400e;border:1px solid #fde68a;">칼슘 최강</span>
+            </div>
+            <div class="dish-nutri">
+              <span>단백질 15g</span><span>칼슘 220mg</span><span>철분 2.9mg</span><span>12분</span>
+            </div>
+            <p class="dish-tip">
+              1회 제공량(80g)에 칼슘이 220mg으로, 성장기 아이에게 꼭 필요한 반찬입니다. <strong>물엿을 마지막에 넣으면 윤기가 살고 바삭한 식감</strong>이 유지됩니다. 냉장 보관 시 1주일까지 가능해 주 1회 미리 만들어두면 편리합니다.
+            </p>
+          </div>
+
+          <div class="dish-item">
+            <div class="dish-header">
+              <span style="font-size:18px;">⬜</span>
+              <span class="dish-name">두부조림</span>
+              <span class="dish-badge" style="background:#eff6ff;color:#1e40af;border:1px solid #93c5fd;">식물성 단백질</span>
+            </div>
+            <div class="dish-nutri">
+              <span>단백질 14g</span><span>칼슘 125mg</span><span>철분 2.0mg</span><span>20분</span>
+            </div>
+            <p class="dish-tip">
+              식물성 단백질과 칼슘을 동시에 섭취할 수 있는 경제적인 반찬입니다. <strong>두부를 키친타올로 꼭 눌러 물기를 완전히 제거한 후 구워야</strong> 겉이 바삭하고 양념이 잘 배어듭니다. 달걀 알레르기가 있는 아이에게도 좋은 단백질 공급원입니다.
+            </p>
+          </div>
+
+          <div class="dish-item">
+            <div class="dish-header">
+              <span style="font-size:18px;">🥩</span>
+              <span class="dish-name">불고기</span>
+              <span class="dish-badge" style="background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;">철분 보충</span>
+            </div>
+            <div class="dish-nutri">
+              <span>단백질 24g</span><span>철분 2.8mg</span><span>칼슘 18mg</span><span>25분(재움 포함)</span>
+            </div>
+            <p class="dish-tip">
+              성장기 아이의 철분 보충에 가장 효과적인 메뉴입니다. <strong>배즙을 양념에 넣으면 고기가 부드러워지고</strong> 아이들이 더 잘 먹습니다. 양파와 버섯을 함께 볶으면 감칠맛이 풍부해져 밥을 더 잘 먹게 됩니다.
+            </p>
+          </div>
+
+          <div class="dish-item">
+            <div class="dish-header">
+              <span style="font-size:18px;">🥦</span>
+              <span class="dish-name">브로콜리볶음</span>
+              <span class="dish-badge" style="background:#f0fdf4;color:#166534;border:1px solid #86efac;">면역 강화</span>
+            </div>
+            <div class="dish-nutri">
+              <span>단백질 4g</span><span>칼슘 52mg</span><span>비타민C 90mg</span><span>식이섬유 2.8g</span>
+            </div>
+            <p class="dish-tip">
+              1회 제공량에 비타민C가 90mg으로, 하루 권장량의 90%를 충족합니다. <strong>끓는 물에 1분만 데친 후 즉시 찬물에 담가야</strong> 선명한 초록색과 비타민이 보존됩니다. 당근을 함께 넣으면 색감도 예쁘고 영양이 더욱 풍부해집니다.
+            </p>
+          </div>
+
+          <div class="dish-item">
+            <div class="dish-header">
+              <span style="font-size:18px;">🥩</span>
+              <span class="dish-name">소고기장조림</span>
+              <span class="dish-badge" style="background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;">도시락 필수</span>
+            </div>
+            <div class="dish-nutri">
+              <span>단백질 22g</span><span>철분 2.5mg</span><span>칼슘 15mg</span><span>40분</span>
+            </div>
+            <p class="dish-tip">
+              한 번 만들면 냉장 5일, 냉동 1개월 보관이 가능한 효자 반찬입니다. <strong>홍두깨살이나 우둔살을 결대로 잘게 찢으면</strong> 아이가 씹기 쉽고 양념도 잘 배어듭니다. 도시락 반찬으로 인기 만점이며 밥 위에 올려 덮밥으로 먹어도 좋습니다.
+            </p>
+          </div>
+
+          <div class="dish-item">
+            <div class="dish-header">
+              <span style="font-size:18px;">🥔</span>
+              <span class="dish-name">감자볶음</span>
+              <span class="dish-badge" style="background:#fff8f0;color:#c05000;border:1px solid #ffc49a;">에너지 보충</span>
+            </div>
+            <div class="dish-nutri">
+              <span>비타민C 18mg</span><span>식이섬유 1.5g</span><span>칼로리 192kcal</span><span>18분</span>
+            </div>
+            <p class="dish-tip">
+              탄수화물과 비타민C를 함께 섭취할 수 있는 든든한 반찬입니다. <strong>채 썬 감자를 찬물에 10분 담가 전분을 빼면</strong> 달라붙지 않고 바삭하게 볶아집니다. 당근과 양파를 함께 넣으면 영양이 더욱 균형 잡힙니다.
+            </p>
+          </div>
+
+          <div class="dish-item">
+            <div class="dish-header">
+              <span style="font-size:18px;">🥕</span>
+              <span class="dish-name">당근나물</span>
+              <span class="dish-badge" style="background:#fff7ed;color:#c2410c;border:1px solid #fdba74;">시력 발달</span>
+            </div>
+            <div class="dish-nutri">
+              <span>베타카로틴</span><span>칼슘 30mg</span><span>식이섬유 2.8g</span><span>10분</span>
+            </div>
+            <p class="dish-tip">
+              베타카로틴이 풍부해 시력 발달과 면역력 강화에 도움을 줍니다. <strong>참기름을 넣어 기름과 함께 먹으면</strong> 지용성 비타민인 베타카로틴의 흡수율이 크게 높아집니다. 10분 만에 완성되는 초간단 반찬으로 바쁜 아침에도 뚝딱 만들 수 있습니다.
+            </p>
+          </div>
+
+          <div class="dish-item">
+            <div class="dish-header">
+              <span style="font-size:18px;">🌱</span>
+              <span class="dish-name">콩나물무침</span>
+              <span class="dish-badge" style="background:#dcfce7;color:#166534;border:1px solid #86efac;">해독·소화</span>
+            </div>
+            <div class="dish-nutri">
+              <span>단백질 4g</span><span>비타민C 8mg</span><span>식이섬유 1.5g</span><span>12분</span>
+            </div>
+            <p class="dish-tip">
+              아스파라긴산이 풍부해 피로 해소와 해독 작용에 탁월합니다. <strong>삶을 때 뚜껑을 열지 않아야</strong> 비린내가 나지 않습니다. 저렴하고 빠르게 만들 수 있어 냉장고 파먹기 반찬으로 손꼽힙니다.
+            </p>
+          </div>
+        </section>
+
+        <!-- 편식·식단 고민 해결 팁 -->
+        <section class="card">
+          <h2>💡 이런 고민 있으신가요? 식단 솔루션 모음</h2>
+          <p style="font-size:12px;color:#aaa;margin-bottom:14px;">아이 밥상을 차리는 부모님들이 자주 묻는 식단 고민과 실용적인 해결책입니다.</p>
+
+          <div class="tip-item">
+            <span class="t-icon">😤</span>
+            <div>
+              <h3>채소를 절대 안 먹는 아이, 어떻게 하나요?</h3>
+              <p>당근·브로콜리 같은 채소를 거부하는 아이라면 좋아하는 달걀이나 고기와 함께 잘게 다져 섞어보세요. 달걀말이 속에 당근을 넣거나, 불고기에 버섯을 얇게 채썰어 넣으면 모르고 먹는 경우가 많습니다. 색이 다른 파프리카를 활용하면 시각적 호기심으로 거부감을 줄일 수 있어요.</p>
+            </div>
+          </div>
+
+          <div class="tip-item">
+            <span class="t-icon">⏱</span>
+            <div>
+              <h3>바쁜 평일 아침 30분 안에 끝내는 반찬 조합은?</h3>
+              <p>① 계란프라이(5분) + ② 전날 만들어둔 멸치볶음 + ③ 김치 — 이 3가지 조합으로 단백질·칼슘·유산균을 모두 챙길 수 있습니다. 주말에 소고기장조림·멸치볶음·콩조림을 한 번에 미리 만들어두면 평일 5일이 훨씬 편해집니다.</p>
+            </div>
+          </div>
+
+          <div class="tip-item">
+            <span class="t-icon">🎒</span>
+            <div>
+              <h3>초등학생 도시락, 흘리지 않고 맛있는 반찬은?</h3>
+              <p>국물이 없는 조림류(소고기장조림·계란장조림·연근조림)와 전류(달걀말이·두부전)가 도시락에 적합합니다. 색감을 위해 브로콜리볶음과 당근나물을 함께 넣으면 영양도 균형 잡히고 눈도 즐겁습니다. 참기름을 마지막에 두르면 식어도 맛이 유지됩니다.</p>
+            </div>
+          </div>
+
+          <div class="tip-item">
+            <span class="t-icon">🩺</span>
+            <div>
+              <h3>알레르기 아이를 위한 단백질 대체 식품은?</h3>
+              <p>계란 알레르기가 있다면 두부·닭가슴살·소고기로, 우유 알레르기라면 두유·두부·멸치로 단백질과 칼슘을 보충할 수 있습니다. 밀 알레르기의 경우 전이나 부침 요리를 쌀가루로 대체하면 됩니다. 우리아이 식단표 앱에서 알레르기 항목을 선택하면 자동으로 해당 재료가 제외된 식단을 생성해드립니다.</p>
+            </div>
+          </div>
+
+          <div class="tip-item">
+            <span class="t-icon">📈</span>
+            <div>
+              <h3>키가 잘 안 크는 아이, 어떤 영양소가 부족한 걸까요?</h3>
+              <p>키 성장에는 칼슘(뼈 형성)·단백질(근육·조직)·아연(세포 성장)·비타민D(칼슘 흡수)가 핵심입니다. 매일 우유 200ml, 두부나 멸치가 들어간 반찬 1가지, 달걀 1개를 포함하는 것이 기본입니다. 충분한 수면과 실외 활동(비타민D 합성)을 병행하면 효과가 배가됩니다.</p>
+            </div>
+          </div>
+
+          <div class="tip-item">
+            <span class="t-icon">🔄</span>
+            <div>
+              <h3>매주 비슷한 메뉴만 반복되는 것 같아요</h3>
+              <p>같은 재료라도 조리법을 바꾸면 완전히 다른 반찬이 됩니다. 두부 하나만 해도 두부조림·두부전·두부스테이크·계란찜에 넣기·된장찌개 등 다양하게 활용할 수 있어요. 우리아이 식단표 앱은 최근 3일간 등장한 메뉴를 자동으로 피해서 식단을 생성하므로 자연스럽게 다양한 메뉴를 경험할 수 있습니다.</p>
+            </div>
+          </div>
         </section>
 
         <!-- 주의사항 -->
