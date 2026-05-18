@@ -1,5 +1,6 @@
 import { AGE_ORDER, AGE_LABELS, AGE_COLORS, diffColor } from "../data/constants";
 import { fmtN } from "../utils/nutrition";
+import { getCoupangLink } from "../data/coupangLinks";
 
 export function RecipeView({ item, onBack }) {
   if (!item) return null;
@@ -51,10 +52,26 @@ export function RecipeView({ item, onBack }) {
 
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: "#d94f00", marginBottom: 9 }}>🥕 필요한 재료</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-            {(item.ingredients ?? []).map(ing => (
-              <span key={ing} style={{ background: "#fff8f0", border: "1px solid #ffc49a", borderRadius: 8, padding: "5px 12px", fontSize: 13, color: "#c05000", fontWeight: 600 }}>{ing}</span>
+          <div style={{ background: "#fff8f0", borderRadius: 12, border: "1px solid #ffc49a", overflow: "hidden" }}>
+            {(item.ingredients ?? []).map((ing, i) => (
+              <div key={ing} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 14px", borderTop: i > 0 ? "1px solid #ffe5cc" : "none", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                  <span style={{ color: "#ff8e53", fontSize: 11, flexShrink: 0 }}>●</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#c05000", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ing}</span>
+                </div>
+                <a
+                  href={getCoupangLink(ing)}
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 5, padding: "6px 13px", borderRadius: 20, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", fontSize: 12, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}
+                >
+                  🛒 구매하기
+                </a>
+              </div>
             ))}
+          </div>
+          <div style={{ fontSize: 11, color: "#bbb", marginTop: 5, textAlign: "right" }}>
+            쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다
           </div>
         </div>
 
