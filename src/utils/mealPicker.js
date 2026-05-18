@@ -57,19 +57,21 @@ function scoreItem(item, prefs, ingreds, recentNames = [], recentIngreds = []) {
   return Math.max(score, 1);
 }
 
-export function pickOne(db, prefs, ingreds, usedNames = [], minAgeIndex = 0, allergenIngreds = [], avoidedIngreds = [], recentNames = [], recentIngreds = []) {
-  const safe = db.filter(i => isSafeForAge(i, minAgeIndex) && isSafeForAllergy(i, allergenIngreds));
+export function pickOne(db, prefs, ingreds, usedNames = [], minAgeIndex = 0, allergenIngreds = [], avoidedIngreds = [], recentNames = [], recentIngreds = [], mealType = null) {
+  const mealFiltered = mealType === "아침" ? db.filter(i => i.breakfast !== false) : db;
+  const safe = mealFiltered.filter(i => isSafeForAge(i, minAgeIndex) && isSafeForAllergy(i, allergenIngreds));
   const notAvoided = safe.filter(i => isNotAvoided(i, avoidedIngreds));
-  const pool = notAvoided.length > 0 ? notAvoided : safe.length > 0 ? safe : db.filter(i => isSafeForAge(i, minAgeIndex));
+  const pool = notAvoided.length > 0 ? notAvoided : safe.length > 0 ? safe : mealFiltered.filter(i => isSafeForAge(i, minAgeIndex));
   const unused = pool.filter(i => !usedNames.includes(i.name));
-  const candidates = unused.length > 0 ? unused : pool.length > 0 ? pool : db.slice(0, 1);
+  const candidates = unused.length > 0 ? unused : pool.length > 0 ? pool : mealFiltered.slice(0, 1);
   if (!candidates.length) return db[0];
   return weightedRandom(candidates.map(item => ({ item, score: scoreItem(item, prefs, ingreds, recentNames, recentIngreds) })));
 }
 
-export function pickTwoSides(prefs, ingreds, usedNames = [], minAgeIndex = 0, allergenIngreds = [], avoidedIngreds = [], recentNames = [], recentIngreds = []) {
-  const safeP = SIDE_DB.filter(s => s.nutriType === "단백질" && isSafeForAge(s, minAgeIndex) && isSafeForAllergy(s, allergenIngreds));
-  const safeV = SIDE_DB.filter(s => s.nutriType === "채소"   && isSafeForAge(s, minAgeIndex) && isSafeForAllergy(s, allergenIngreds));
+export function pickTwoSides(prefs, ingreds, usedNames = [], minAgeIndex = 0, allergenIngreds = [], avoidedIngreds = [], recentNames = [], recentIngreds = [], mealType = null) {
+  const sideFiltered = mealType === "아침" ? SIDE_DB.filter(s => s.breakfast !== false) : SIDE_DB;
+  const safeP = sideFiltered.filter(s => s.nutriType === "단백질" && isSafeForAge(s, minAgeIndex) && isSafeForAllergy(s, allergenIngreds));
+  const safeV = sideFiltered.filter(s => s.nutriType === "채소"   && isSafeForAge(s, minAgeIndex) && isSafeForAllergy(s, allergenIngreds));
   const baseP = safeP.filter(s => isNotAvoided(s, avoidedIngreds));
   const baseV = safeV.filter(s => isNotAvoided(s, avoidedIngreds));
   const poolP = (baseP.length > 0 ? baseP : safeP).filter(s => !usedNames.includes(s.name));
@@ -114,9 +116,9 @@ export function generateWeekPlan(prefs, ingreds, selectedAgeIds = [], allergenIn
     const { recentNames, recentIngreds } = getRecentHistory(plan, day, 3);
 
     mealsToGen.forEach(m => {
-      const rice  = pickOne(RICE_DB, prefs, ingreds, usedRice,  minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds);
-      const soup  = pickOne(SOUP_DB, prefs, ingreds, usedSoup,  minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds);
-      const sides = pickTwoSides(prefs, ingreds, usedSides, minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds);
+      const rice  = pickOne(RICE_DB, prefs, ingreds, usedRice,  minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds, m);
+      const soup  = pickOne(SOUP_DB, prefs, ingreds, usedSoup,  minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds, m);
+      const sides = pickTwoSides(prefs, ingreds, usedSides, minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds, m);
       usedRice.push(rice.name);
       usedSoup.push(soup.name);
       sides.forEach(s => usedSides.push(s.name));
@@ -135,14 +137,16 @@ export function handleReplaceItem(prev, activeDay, activeMeal, type, prefs, ingr
   const { recentNames, recentIngreds } = getRecentHistory(prev, activeDay, 3);
 
   if (type === "rice") {
-    meal.rice = pickOne(RICE_DB, prefs, ingreds, [meal.rice?.name], minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds);
+    meal.rice = pickOne(RICE_DB, prefs, ingreds, [meal.rice?.name], minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds, activeMeal);
   } else if (type === "soup") {
-    meal.soup = pickOne(SOUP_DB, prefs, ingreds, [meal.soup?.name], minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds);
+    meal.soup = pickOne(SOUP_DB, prefs, ingreds, [meal.soup?.name], minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds, activeMeal);
   } else if (type === "side0") {
-    const db = SIDE_DB.filter(s => s.nutriType === "단백질");
+    const baseDb = activeMeal === "아침" ? SIDE_DB.filter(s => s.breakfast !== false) : SIDE_DB;
+    const db = baseDb.filter(s => s.nutriType === "단백질");
     meal.sides[0] = pickOne(db, prefs, ingreds, [meal.sides[0]?.name], minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds) || meal.sides[0];
   } else if (type === "side1") {
-    const db = SIDE_DB.filter(s => s.nutriType === "채소");
+    const baseDb = activeMeal === "아침" ? SIDE_DB.filter(s => s.breakfast !== false) : SIDE_DB;
+    const db = baseDb.filter(s => s.nutriType === "채소");
     meal.sides[1] = pickOne(db, prefs, ingreds, [meal.sides[1]?.name], minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds) || meal.sides[1];
   }
   return next;
