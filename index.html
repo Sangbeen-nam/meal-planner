@@ -15,6 +15,14 @@
     <!-- Canonical -->
     <link rel="canonical" href="https://mealplanner365.co.kr" />
 
+    <!-- Preconnect: 광고·분석 스크립트 로딩 속도 개선 -->
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
+    <link rel="preconnect" href="https://t1.kakaocdn.net" />
+
+    <!-- Sitemap 명시 -->
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
     <!-- SEO -->
     <meta name="description" content="영아·유아·초등·청소년 연령별 맞춤 주간 식단을 자동으로 생성해드립니다. 밥·국·반찬 균형 식단, 알레르기 자동 필터, 장보기 목록까지 한 번에 해결하세요." />
     <meta name="keywords" content="아이식단,유아식단,이유식,아기밥,주간식단표,영아식단,편식,알레르기식단,워킹맘식단,아이반찬,어린이식단,초등식단,청소년식단,아이밥상,균형식단" />
@@ -51,11 +59,7 @@
           "url": "https://mealplanner365.co.kr",
           "name": "우리아이 식단표",
           "description": "영아·유아·초등·청소년 연령별 맞춤 주간 식단 자동 생성 서비스",
-          "inLanguage": "ko-KR",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://mealplanner365.co.kr"
-          }
+          "inLanguage": "ko-KR"
         },
         {
           "@type": "WebApplication",
@@ -106,6 +110,110 @@
             {"@type": "Thing", "name": "어린이 영양"},
             {"@type": "Thing", "name": "주간 식단표"}
           ]
+        }
+      ]
+    }
+    </script>
+
+    <!-- FAQPage 구조화 데이터 (구글 리치 스니펫) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "@id": "https://mealplanner365.co.kr/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "우리아이 식단표는 무료인가요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "네, 완전 무료입니다. 회원가입도 필요 없어요. 브라우저에서 바로 이용하실 수 있습니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "식단 데이터가 저장되나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "모든 데이터는 기기의 로컬 저장소(localStorage)에만 저장됩니다. 서버에 개인정보가 전송되지 않아 안전합니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "알레르기가 여러 개인 경우도 지원하나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "네, 복수의 알레르기를 동시에 선택할 수 있습니다. 선택한 모든 알레르기 식품이 포함된 메뉴를 자동으로 제외합니다. 계란·우유·밀·새우·땅콩·견과류 등 주요 알레르기 식품을 지원합니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "아이가 여러 명인 경우는 어떻게 하나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "최대 3명의 아이 프로필을 저장하고 각각의 연령에 맞는 통합 식단을 생성할 수 있습니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "메뉴 데이터베이스는 얼마나 되나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "밥·면·죽 59가지, 국·찌개·탕 57가지, 반찬 131가지로 총 247개 메뉴가 등록되어 있으며 지속적으로 업데이트 중입니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "연령별 식단 기준은 어떻게 되나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "한국 영양학회 기준을 참고하여 영아(0~2세), 유아(3~5세), 초등 저학년(6~8세), 초등 고학년(9~11세), 청소년(12~18세) 5단계로 구분합니다. 각 연령별 단백질·칼슘·철분 목표량이 다르게 적용됩니다."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- HowTo 구조화 데이터 (이용 방법 단계별 가이드) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "@id": "https://mealplanner365.co.kr/#howto",
+      "name": "우리아이 식단표로 주간 식단 만드는 방법",
+      "description": "아이의 연령과 알레르기 정보를 입력해 1주일치 균형 잡힌 식단을 자동으로 생성하는 방법입니다.",
+      "totalTime": "PT3M",
+      "tool": [{ "@type": "HowToTool", "name": "스마트폰 또는 PC 웹브라우저" }],
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": "1",
+          "name": "아이 정보 입력",
+          "text": "아이의 생년월일과 알레르기 정보를 입력합니다. 최대 3명의 아이 프로필을 저장할 수 있어 형제자매도 함께 관리할 수 있습니다."
+        },
+        {
+          "@type": "HowToStep",
+          "position": "2",
+          "name": "식사 유형 선택",
+          "text": "아침, 점심, 저녁 중 계획할 식사를 선택합니다. 워킹맘이라면 저녁만, 전업주부라면 세 끼 모두 선택할 수 있습니다."
+        },
+        {
+          "@type": "HowToStep",
+          "position": "3",
+          "name": "냉장고 재료 선택",
+          "text": "현재 냉장고에 있는 재료를 선택합니다. 해당 재료가 들어간 메뉴를 우선으로 추천해 드립니다. 없으면 건너뛰어도 됩니다."
+        },
+        {
+          "@type": "HowToStep",
+          "position": "4",
+          "name": "주간 식단 자동 완성",
+          "text": "버튼 하나로 월~일 7일치 주간 식단이 완성됩니다. 마음에 안 드는 메뉴는 교체 버튼으로 즉시 바꿀 수 있습니다."
+        },
+        {
+          "@type": "HowToStep",
+          "position": "5",
+          "name": "장보기 목록 확인 및 저장",
+          "text": "주간 식단에 필요한 모든 재료가 자동으로 정리됩니다. 쿠팡 바로가기로 클릭 한 번에 구매하거나 이미지로 저장해 공유할 수 있습니다."
         }
       ]
     }
@@ -786,8 +894,16 @@
       </main>
 
       <footer>
-        <p>© 2026 우리아이 식단표 · 운영자: 남상빈 · <a href="mailto:skatkdqla173123@gmail.com" style="color:#ff6b6b;">skatkdqla173123@gmail.com</a></p>
-        <p style="margin-top:6px;">mealplanner365.co.kr</p>
+        <nav aria-label="사이트 정보 페이지" style="margin-bottom:10px;">
+          <a href="/privacy.html" style="color:#ff6b6b;font-size:12px;">개인정보처리방침</a>
+          <span style="color:#ddd;margin:0 6px;">·</span>
+          <a href="/terms.html" style="color:#ff6b6b;font-size:12px;">이용약관</a>
+          <span style="color:#ddd;margin:0 6px;">·</span>
+          <a href="mailto:skatkdqla173123@gmail.com" style="color:#ff6b6b;font-size:12px;">문의하기</a>
+        </nav>
+        <p>© 2026 우리아이 식단표 · 운영자: 남상빈</p>
+        <p style="margin-top:4px;">mealplanner365.co.kr</p>
+        <p style="margin-top:6px;font-size:10px;color:#ccc;">본 사이트는 Google AdSense를 통해 광고를 게재합니다.</p>
       </footer>
     </div>
 

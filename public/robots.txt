@@ -6,4 +6,4 @@ User-agent: Mediapartners-Google
 Allow: /
 
 # 사이트맵
-Sitemap: https://meal-planner-iota-nine.vercel.app/sitemap.xml
+Sitemap: https://mealplanner365.co.kr/sitemap.xml
