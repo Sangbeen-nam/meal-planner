@@ -361,14 +361,25 @@ export default function MealPlanner() {
     setEditFoodPrefs(p?.foodPrefs     || []);
   };
 
+  const hasCurrentEdits = () =>
+    editBirthYear || editBirthMonth || editAllergies.length > 0 || editAvoids.length > 0 || editFoodPrefs.length > 0;
+
   const handleProfileTabClick = (idx) => {
+    let currentProfiles = profiles;
+    if (hasCurrentEdits() || profiles[profileTab]) {
+      currentProfiles = saveCurrentProfile();
+    }
     setProfileTab(idx);
-    loadProfileIntoEdit(idx, profiles);
-    if (profiles[idx]) applyAllProfiles(profiles);
+    loadProfileIntoEdit(idx, currentProfiles);
+    if (currentProfiles[idx]) applyAllProfiles(currentProfiles);
   };
 
   const handleAddProfileTab = () => {
-    setProfileTab(profiles.length);
+    let currentProfiles = profiles;
+    if (hasCurrentEdits() || profiles[profileTab]) {
+      currentProfiles = saveCurrentProfile();
+    }
+    setProfileTab(currentProfiles.length);
     setEditBirthYear(""); setEditBirthMonth("");
     setEditAllergies([]); setEditAvoids([]); setEditFoodPrefs([]);
   };
