@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { gaEvent } from "./utils/analytics";
 import { DAYS, MEALS, FOOD_PREFS, INGREDIENT_GROUPS, AGE_GROUPS, ALLERGY_OPTIONS } from "./data/constants";
 import { calcMealGoal, fmtN } from "./utils/nutrition";
 import { getMinAgeIndex, generateWeekPlan, pickOne, pickTwoSides, handleReplaceItem } from "./utils/mealPicker";
@@ -249,6 +250,7 @@ export default function MealPlanner() {
       link.download = filename;
       link.href = canvas.toDataURL("image/png");
       link.click();
+      gaEvent('save_image', { view: filename.includes('주간') ? 'weekly' : 'daily' });
     } catch {
       alert("이미지 저장에 실패했어요. 다시 시도해주세요.");
     }
@@ -261,6 +263,7 @@ export default function MealPlanner() {
   }, []);
 
   const handleKakaoShare = () => {
+    gaEvent('share_kakao');
     if (!window.Kakao) return;
     window.Kakao.Share.sendDefault({
       objectType: 'feed',
@@ -288,6 +291,7 @@ export default function MealPlanner() {
   };
 
   const handleRegenDay = () => {
+    gaEvent('meal_regen_day');
     const minAgeIndex = getMinAgeIndex(selectedAges);
     setWeekPlan(prev => {
       if (!prev?.[activeDay]) return prev;
@@ -306,6 +310,7 @@ export default function MealPlanner() {
 
   // ── onboarding render ─────────────────────────────────────────────────────
   const finishOnboarding = () => {
+    gaEvent('onboarding_complete');
     try { localStorage.setItem("mp_onboarding_done", "1"); } catch(e) { console.warn("storage fail", e); }
     setShowOnboarding(false);
     setOnboardingSlide(0);
@@ -375,6 +380,7 @@ export default function MealPlanner() {
   };
 
   const handleAddProfileTab = () => {
+    gaEvent('profile_add');
     let currentProfiles = profiles;
     if (hasCurrentEdits() || profiles[profileTab]) {
       currentProfiles = saveCurrentProfile();
@@ -430,10 +436,12 @@ export default function MealPlanner() {
     } else {
       applyAllProfiles(profiles);
     }
+    gaEvent('step_profile_complete');
     setStep("mealtype");
   };
 
   const handleQuickStart = () => {
+    gaEvent('step_quickstart');
     applyAllProfiles(profiles);
     setStep("fridge");
   };
@@ -476,6 +484,7 @@ export default function MealPlanner() {
         safeSet("mp_weekplan", plan);
         setActiveMeal(mealsToUse[0]);
         setStep("planner");
+        gaEvent('meal_generate', { age_groups: selectedAges.join(','), meal_count: mealsToUse.length });
       } catch (e) {
         console.error("식단 생성 오류:", e);
         alert("식단 생성 중 오류가 발생했어요. 다시 시도해주세요.");
@@ -486,6 +495,7 @@ export default function MealPlanner() {
   };
 
   const handleRegenMeal = () => {
+    gaEvent('meal_regen_meal');
     const minAgeIndex = getMinAgeIndex(selectedAges);
     const rice  = pickOne(RICE_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
     const soup  = pickOne(SOUP_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
@@ -500,6 +510,7 @@ export default function MealPlanner() {
   };
 
   const onReplaceItem = (type, mealKey = activeMeal) => {
+    gaEvent('meal_replace_item', { item_type: type });
     if (!weekPlan?.[activeDay]?.[mealKey]) return;
     const minAgeIndex = getMinAgeIndex(selectedAges);
     setWeekPlan(prev => {
@@ -975,7 +986,7 @@ export default function MealPlanner() {
               {/* 일간/주간 토글 */}
               <div style={{ display: "flex", background: "#f0f0f0", borderRadius: 12, padding: 3, marginBottom: 12 }}>
                 {[["daily","📅 일간 보기"],["weekly","📋 주간 보기"]].map(([mode, label]) => (
-                  <button key={mode} onClick={() => setViewMode(mode)}
+                  <button key={mode} onClick={() => { setViewMode(mode); gaEvent('view_mode_change', { mode }); }}
                     style={{ flex: 1, padding: "8px", borderRadius: 10, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, background: viewMode === mode ? "#ff6b6b" : "transparent", color: viewMode === mode ? "#fff" : "#999", transition: "all 0.15s" }}>
                     {label}
                   </button>
@@ -1028,7 +1039,7 @@ export default function MealPlanner() {
                                   style={{ padding: "6px 14px", borderRadius: 20, border: "1.5px solid #e5e7eb", background: "#f3f4f6", color: "#888", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                                   🔄 이 메뉴만 교체
                                 </button>
-                                <button onClick={() => { setViewRecipe(it); setStep("recipe"); }}
+                                <button onClick={() => { setViewRecipe(it); setStep("recipe"); gaEvent('view_recipe', { menu_name: it.name }); }}
                                   style={{ padding: "6px 14px", borderRadius: 20, border: `1.5px solid ${mStyle.text}66`, background: "rgba(255,255,255,0.9)", color: mStyle.text, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                                   조리법
                                 </button>
