@@ -241,6 +241,7 @@ export default function MealPlanner() {
 
   const dailySaveRef  = useRef(null);
   const weeklySaveRef = useRef(null);
+  const formRef       = useRef(null);
 
   const handleSaveImage = async (ref, filename) => {
     try {
@@ -251,6 +252,9 @@ export default function MealPlanner() {
       link.href = canvas.toDataURL("image/png");
       link.click();
       gaEvent('save_image', { view: filename.includes('주간') ? 'weekly' : 'daily' });
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'meal_image_saved', { type: filename.includes('주간') ? 'weekly' : 'daily' });
+      }
     } catch {
       alert("이미지 저장에 실패했어요. 다시 시도해주세요.");
     }
@@ -264,6 +268,9 @@ export default function MealPlanner() {
 
   const handleKakaoShare = () => {
     gaEvent('share_kakao');
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'kakao_share_clicked');
+    }
     if (!window.Kakao) return;
     window.Kakao.Share.sendDefault({
       objectType: 'feed',
@@ -485,6 +492,13 @@ export default function MealPlanner() {
         setActiveMeal(mealsToUse[0]);
         setStep("planner");
         gaEvent('meal_generate', { age_groups: selectedAges.join(','), meal_count: mealsToUse.length });
+        if (typeof window !== 'undefined' && window.gtag) {
+          window.gtag('event', 'meal_plan_generated', {
+            age_group: selectedAges[0] || 'unknown',
+            allergies_selected: allergenIngredients.length,
+            has_fridge_items: selectedIngreds.length > 0
+          });
+        }
       } catch (e) {
         console.error("식단 생성 오류:", e);
         alert("식단 생성 중 오류가 발생했어요. 다시 시도해주세요.");
@@ -511,6 +525,9 @@ export default function MealPlanner() {
 
   const onReplaceItem = (type, mealKey = activeMeal) => {
     gaEvent('meal_replace_item', { item_type: type });
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'meal_swap_clicked', { meal_type: type === 'rice' ? 'rice' : type === 'soup' ? 'soup' : 'side' });
+    }
     if (!weekPlan?.[activeDay]?.[mealKey]) return;
     const minAgeIndex = getMinAgeIndex(selectedAges);
     setWeekPlan(prev => {
@@ -563,6 +580,23 @@ export default function MealPlanner() {
           <div style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>아이 정보를 저장하면 다음부터 바로 시작할 수 있어요</div>
         </div>
 
+        {/* CTA Button */}
+        <div style={{ marginBottom: 20 }}>
+          <button
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.gtag) {
+                window.gtag('event', 'cta_main_click', { location: 'hero' });
+              }
+              formRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
+            style={{ background: "#ff6b6b", color: "#fff", fontSize: 19, fontWeight: 700, padding: "16px 32px", borderRadius: 12, border: "none", cursor: "pointer", boxShadow: "0 4px 12px rgba(255,107,107,0.3)", width: "100%", fontFamily: "inherit", transition: "transform 0.15s" }}
+          >
+            🍱 지금 우리아이 식단표 만들기 →
+          </button>
+        </div>
+
         {/* Quick start card for returning users */}
         {filledProfiles.length > 0 && (
           <div style={{ background: "linear-gradient(135deg,#fff8f0,#fff0f8)", border: "2px solid #ff8e53", borderRadius: 18, padding: 18, marginBottom: 20 }}>
@@ -588,7 +622,7 @@ export default function MealPlanner() {
         )}
 
         {/* Profile editor card */}
-        <div style={{ background: "#fff", borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: "0 2px 14px rgba(255,107,107,0.08)", border: "1.5px solid #ffd0b0", position: "relative" }}>
+        <div ref={formRef} style={{ background: "#fff", borderRadius: 18, padding: 18, marginBottom: 12, boxShadow: "0 2px 14px rgba(255,107,107,0.08)", border: "1.5px solid #ffd0b0", position: "relative" }}>
           {profiles.length > 0 && (
             <button onClick={handleDeleteAllProfiles}
               style={{ position: "absolute", top: 14, right: 14, background: "none", border: "none", color: "#ccc", fontSize: 10, cursor: "pointer", fontFamily: "inherit", padding: "2px 4px", lineHeight: 1.2 }}>
@@ -1151,6 +1185,14 @@ export default function MealPlanner() {
                   <NutritionGuide />
                 </div>
               )}
+
+              {/* 영양 정보 출처 */}
+              <div style={{ marginTop: 16, padding: "12px 14px", background: "#f9f9f9", borderRadius: 12, border: "1px solid #eee" }}>
+                <p style={{ fontSize: 11, color: "#999", lineHeight: 1.8, margin: 0 }}>
+                  ⚠️ 영양 정보 출처: 식품의약품안전처 식품영양성분 DB, 한국영양학회 한국인 영양소 섭취기준(KDRI 2020)<br />
+                  본 정보는 일반 참고용이며 의학적 진단을 대체하지 않습니다.
+                </p>
+              </div>
             </div>
           );
         })()}

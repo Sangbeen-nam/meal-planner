@@ -48,6 +48,7 @@ export function RecipeView({ item, onBack }) {
               </div>
             ))}
           </div>
+          <div style={{ fontSize: 11, color: "#aaa", marginTop: 6, textAlign: "right" }}>출처: 식품안전처 DB</div>
         </div>
 
         <div style={{ marginBottom: 14 }}>

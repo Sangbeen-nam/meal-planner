@@ -51,7 +51,7 @@ export function ShoppingList({ meal, weekPlan, showWeeklyShop, setShowWeeklyShop
             <a key={ing}
               href={getCoupangLink(ing)}
               target="_blank" rel="noreferrer"
-              onClick={e => { e.preventDefault(); toggleCheck(ing); gaEvent('coupang_click', { ingredient: ing, list: 'daily' }); window.open(e.currentTarget.href, "_blank"); }}
+              onClick={e => { e.preventDefault(); toggleCheck(ing); gaEvent('coupang_click', { ingredient: ing, list: 'daily' }); if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); } window.open(e.currentTarget.href, "_blank"); }}
               style={{ background: checkedItems.includes(ing) ? "#f0fdf4" : "#fff", border: `1px solid ${checkedItems.includes(ing) ? "#86efac" : "#ffc0a0"}`, borderRadius: 8, padding: "4px 9px", fontSize: 12, color: checkedItems.includes(ing) ? "#16a34a" : "#e55", textDecoration: checkedItems.includes(ing) ? "line-through" : "none", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
               {checkedItems.includes(ing) ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
             </a>
@@ -86,7 +86,7 @@ export function ShoppingList({ meal, weekPlan, showWeeklyShop, setShowWeeklyShop
               <a key={ing}
                 href={getCoupangLink(ing)}
                 target="_blank" rel="noreferrer"
-                onClick={e => { e.preventDefault(); toggleWeeklyCheck(ing); gaEvent('coupang_click', { ingredient: ing, list: 'weekly' }); window.open(e.currentTarget.href, "_blank"); }}
+                onClick={e => { e.preventDefault(); toggleWeeklyCheck(ing); gaEvent('coupang_click', { ingredient: ing, list: 'weekly' }); if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); } window.open(e.currentTarget.href, "_blank"); }}
                 style={{ background: weeklyChecked.includes(ing) ? "#f0fdf4" : "#fff", border: `1px solid ${weeklyChecked.includes(ing) ? "#86efac" : "#fed7aa"}`, borderRadius: 8, padding: "5px 10px", fontSize: 12, color: weeklyChecked.includes(ing) ? "#16a34a" : "#c2410c", textDecoration: weeklyChecked.includes(ing) ? "line-through" : "none", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
                 {weeklyChecked.includes(ing) ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
               </a>
