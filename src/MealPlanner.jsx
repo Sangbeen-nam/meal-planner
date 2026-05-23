@@ -12,6 +12,7 @@ import { ShoppingList } from "./components/ShoppingList";
 import PrivacyPolicy from "./components/PrivacyPolicy.jsx";
 import AboutPage from "./components/AboutPage.jsx";
 import TermsPage from "./components/TermsPage.jsx";
+import CoupangDisclaimer from "./components/CoupangDisclaimer.jsx";
 
 const NUTRITION_GUIDES = [
   {
@@ -727,6 +728,7 @@ export default function MealPlanner() {
         </div>
 
         <NutritionGuide />
+        <CoupangDisclaimer />
       </div>
     );
   };
@@ -1193,6 +1195,7 @@ export default function MealPlanner() {
                   본 정보는 일반 참고용이며 의학적 진단을 대체하지 않습니다.
                 </p>
               </div>
+              <CoupangDisclaimer />
             </div>
           );
         })()}
