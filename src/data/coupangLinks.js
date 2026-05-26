@@ -61,6 +61,8 @@ export const COUPANG_LINKS = {
   "숙주": "https://link.coupang.com/a/dIVneptcMS",
   "도라지": "https://link.coupang.com/a/dIVnNtbCcm",
   "피망": "https://link.coupang.com/a/dIVoi6BO0a",
+  "오이": "https://link.coupang.com/a/d459mG4P1g",
+  "시래기": "https://link.coupang.com/a/d458orun4m",
 
   // ── 단백질/유제품 ─────────────────────
   "계란": "https://link.coupang.com/a/dIVpGY5enY",
@@ -89,6 +91,7 @@ export const COUPANG_LINKS = {
   "미역": "https://link.coupang.com/a/dIVIGcdddY",
   "청국장": "https://link.coupang.com/a/dIVJbyxu0W",
   "들깨": "https://link.coupang.com/a/dIVJSOfGAC",
+  "식초": "https://link.coupang.com/a/d46aDixSeW",
 
   // ── 가공식품 ──────────────────────────
   "소시지": "https://link.coupang.com/a/dIVKDEPh3A",
@@ -106,6 +109,7 @@ export const COUPANG_LINKS = {
   "아보카도": "https://link.coupang.com/a/dIVSO6IGZw",
   "묵": "https://link.coupang.com/a/dIVThJeSQ0",
   "깨": "https://link.coupang.com/a/dIVTN5VgGW",
+  "검은콩": "https://link.coupang.com/a/d455IkxQ1B",
 };
 
 export const getCoupangLink = (ingredient) => {
@@ -113,5 +117,5 @@ export const getCoupangLink = (ingredient) => {
   if (link && link !== "") {
     return link;
   }
-  return `https://www.coupang.com/np/search?q=${encodeURIComponent(ingredient + " 로켓프레시")}&channel=user&isPriorityMobileWeb=true`;
+  return null;
 };

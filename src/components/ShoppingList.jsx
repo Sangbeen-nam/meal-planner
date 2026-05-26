@@ -47,15 +47,25 @@ export function ShoppingList({ meal, weekPlan, showWeeklyShop, setShowWeeklyShop
           <div style={{ fontSize: 10, color: "#bbb" }}>클릭 시 쿠팡 로켓프레시 ↗</div>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-          {mealIngredients.map(ing => (
-            <a key={ing}
-              href={getCoupangLink(ing)}
-              target="_blank" rel="noreferrer"
-              onClick={e => { e.preventDefault(); toggleCheck(ing); gaEvent('coupang_click', { ingredient: ing, list: 'daily' }); if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); } window.open(e.currentTarget.href, "_blank"); }}
-              style={{ background: checkedItems.includes(ing) ? "#f0fdf4" : "#fff", border: `1px solid ${checkedItems.includes(ing) ? "#86efac" : "#ffc0a0"}`, borderRadius: 8, padding: "4px 9px", fontSize: 12, color: checkedItems.includes(ing) ? "#16a34a" : "#e55", textDecoration: checkedItems.includes(ing) ? "line-through" : "none", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
-              {checkedItems.includes(ing) ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
-            </a>
-          ))}
+          {mealIngredients.map(ing => {
+            const link = getCoupangLink(ing);
+            const checked = checkedItems.includes(ing);
+            const baseStyle = { borderRadius: 8, padding: "4px 9px", fontSize: 12, display: "flex", alignItems: "center", gap: 3 };
+            return link ? (
+              <a key={ing}
+                href={link}
+                target="_blank" rel="noreferrer"
+                onClick={e => { e.preventDefault(); toggleCheck(ing); gaEvent('coupang_click', { ingredient: ing, list: 'daily' }); if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); } window.open(link, "_blank"); }}
+                style={{ ...baseStyle, background: checked ? "#f0fdf4" : "#fff", border: `1px solid ${checked ? "#86efac" : "#ffc0a0"}`, color: checked ? "#16a34a" : "#e55", textDecoration: checked ? "line-through" : "none", cursor: "pointer" }}>
+                {checked ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
+              </a>
+            ) : (
+              <span key={ing}
+                style={{ ...baseStyle, background: "#f9f9f9", border: "1px solid #e0e0e0", color: "#999", cursor: "default", opacity: 0.5 }}>
+                {ing}<span style={{ fontSize: 9, color: "#bbb" }}>준비중</span>
+              </span>
+            );
+          })}
         </div>
         {checkedItems.length > 0 && (
           <button onClick={onClear} style={{ marginTop: 7, fontSize: 10, color: "#bbb", background: "none", border: "none", cursor: "pointer", padding: 0 }}>✕ 체크 전체 해제</button>

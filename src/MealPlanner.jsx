@@ -218,8 +218,10 @@ export default function MealPlanner() {
     soup:  pickOne(SOUP_DB, [], [], [], 1),
     sides: pickTwoSides([], [], [], 1),
   }));
-  const [showCta,        setShowCta]        = useState(false);
-  const [landingChecked, setLandingChecked] = useState([]);
+  const [showCta,            setShowCta]            = useState(false);
+  const [landingChecked,     setLandingChecked]     = useState([]);
+  const [plannerShopChecked, setPlannerShopChecked] = useState([]);
+  const [plannerShopScope,   setPlannerShopScope]   = useState("today");
 
   // ── profile edit state ───────────────────────────────────────────────────
   const [profiles,       setProfiles]       = useState(() => { try { return JSON.parse(localStorage.getItem("mp_profiles") || "[]"); } catch { return []; } });
@@ -635,21 +637,31 @@ export default function MealPlanner() {
               <div style={{ fontSize: 10, color: "#bbb" }}>클릭 시 쿠팡 로켓프레시 ↗</div>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-              {sampleIngreds.map(ing => (
-                <a key={ing}
-                  href={getCoupangLink(ing)}
-                  target="_blank" rel="noreferrer"
-                  onClick={e => {
-                    e.preventDefault();
-                    setLandingChecked(prev => prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]);
-                    gaEvent('coupang_click', { ingredient: ing, list: 'landing' });
-                    if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); }
-                    window.open(e.currentTarget.href, "_blank");
-                  }}
-                  style={{ background: landingChecked.includes(ing) ? "#f0fdf4" : "#fff", border: `1px solid ${landingChecked.includes(ing) ? "#86efac" : "#ffc0a0"}`, borderRadius: 8, padding: "4px 9px", fontSize: 12, color: landingChecked.includes(ing) ? "#16a34a" : "#e55", textDecoration: landingChecked.includes(ing) ? "line-through" : "none", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
-                  {landingChecked.includes(ing) ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
-                </a>
-              ))}
+              {sampleIngreds.map(ing => {
+                const link = getCoupangLink(ing);
+                const checked = landingChecked.includes(ing);
+                const baseStyle = { borderRadius: 8, padding: "4px 9px", fontSize: 12, display: "flex", alignItems: "center", gap: 3 };
+                return link ? (
+                  <a key={ing}
+                    href={link}
+                    target="_blank" rel="noreferrer"
+                    onClick={e => {
+                      e.preventDefault();
+                      setLandingChecked(prev => prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]);
+                      gaEvent('coupang_click', { ingredient: ing, list: 'landing' });
+                      if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); }
+                      window.open(link, "_blank");
+                    }}
+                    style={{ ...baseStyle, background: checked ? "#f0fdf4" : "#fff", border: `1px solid ${checked ? "#86efac" : "#ffc0a0"}`, color: checked ? "#16a34a" : "#e55", textDecoration: checked ? "line-through" : "none", cursor: "pointer" }}>
+                    {checked ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
+                  </a>
+                ) : (
+                  <span key={ing}
+                    style={{ ...baseStyle, background: "#f9f9f9", border: "1px solid #e0e0e0", color: "#999", cursor: "default", opacity: 0.5 }}>
+                    {ing}<span style={{ fontSize: 9, color: "#bbb" }}>준비중</span>
+                  </span>
+                );
+              })}
             </div>
           </div>
           {/* 공정위 문구 */}
@@ -674,6 +686,73 @@ export default function MealPlanner() {
               🔄 다른 식단 보기
             </button>
           </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Planner 인라인 장보기 카드 ────────────────────────────────────────────
+  const renderPlannerShopCard = () => {
+    const ingreds = plannerShopScope === "today"
+      ? [...new Set(
+          mealsInPlan.flatMap(m =>
+            [weekPlan[activeDay]?.[m]?.rice,
+             weekPlan[activeDay]?.[m]?.soup,
+             ...(weekPlan[activeDay]?.[m]?.sides || [])]
+            .filter(Boolean).flatMap(i => i.ingredients || [])
+          )
+        )]
+      : [...new Set(
+          DAYS.flatMap(d =>
+            mealsInPlan.flatMap(m =>
+              [weekPlan[d]?.[m]?.rice,
+               weekPlan[d]?.[m]?.soup,
+               ...(weekPlan[d]?.[m]?.sides || [])]
+              .filter(Boolean).flatMap(i => i.ingredients || [])
+            )
+          )
+        )];
+    return (
+      <div style={{ background: "#FFF4ED", borderRadius: 16, padding: "14px", marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#e55", marginBottom: 3 }}>🛒 이 식단의 식재료 ({ingreds.length}종)</div>
+        <div style={{ fontSize: 10, color: "#bbb", marginBottom: 10 }}>클릭 1번으로 쿠팡 로켓프레시 ↗</div>
+        <div style={{ display: "flex", background: "#f0f0f0", borderRadius: 20, padding: 2, width: "fit-content", marginBottom: 10 }}>
+          {[["today", "오늘"], ["week", "이번주"]].map(([val, label]) => (
+            <button key={val} onClick={() => setPlannerShopScope(val)}
+              style={{ padding: "5px 14px", borderRadius: 18, border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", background: plannerShopScope === val ? "#FF6B6B" : "transparent", color: plannerShopScope === val ? "#fff" : "#888", transition: "all 0.15s" }}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+          {ingreds.map(ing => {
+            const link = getCoupangLink(ing);
+            const checked = plannerShopChecked.includes(ing);
+            const baseStyle = { borderRadius: 8, padding: "4px 9px", fontSize: 12, display: "flex", alignItems: "center", gap: 3 };
+            return link ? (
+              <a key={ing}
+                href={link}
+                target="_blank" rel="noreferrer"
+                onClick={e => {
+                  e.preventDefault();
+                  setPlannerShopChecked(prev => prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]);
+                  gaEvent('coupang_click', { ingredient: ing, list: 'planner_inline' });
+                  if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); }
+                  window.open(link, "_blank");
+                }}
+                style={{ ...baseStyle, background: checked ? "#f0fdf4" : "#fff", border: `1px solid ${checked ? "#86efac" : "#ffc0a0"}`, color: checked ? "#16a34a" : "#e55", textDecoration: checked ? "line-through" : "none", cursor: "pointer" }}>
+                {checked ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
+              </a>
+            ) : (
+              <span key={ing}
+                style={{ ...baseStyle, background: "#f9f9f9", border: "1px solid #e0e0e0", color: "#999", cursor: "default", opacity: 0.5 }}>
+                {ing}<span style={{ fontSize: 9, color: "#bbb" }}>준비중</span>
+              </span>
+            );
+          })}
+        </div>
+        <div style={{ fontSize: 10, color: "#888", lineHeight: 1.6 }}>
+          이 페이지에는 쿠팡 파트너스 활동의 일환으로 수수료를 제공받는 링크가 포함되어 있습니다.
         </div>
       </div>
     );
@@ -1215,8 +1294,8 @@ export default function MealPlanner() {
                     </div>
                   </div>
 
-                  {/* 장보기 목록 */}
-                  <ShoppingList meal={weekPlan[activeDay]?.[mealsInPlan[0]]} weekPlan={weekPlan} showWeeklyShop={showWeeklyShop} setShowWeeklyShop={setShowWeeklyShop} checkedItems={checkedItems} toggleCheck={toggleCheck} onClear={() => setCheckedItems([])} />
+                  {/* 장보기 목록 — renderPlannerShopCard()로 대체, 필요 시 아래 주석 해제 */}
+                  {/* <ShoppingList meal={weekPlan[activeDay]?.[mealsInPlan[0]]} weekPlan={weekPlan} showWeeklyShop={showWeeklyShop} setShowWeeklyShop={setShowWeeklyShop} checkedItems={checkedItems} toggleCheck={toggleCheck} onClear={() => setCheckedItems([])} /> */}
 
                   {/* 버튼 */}
                   <div style={{ display: "flex", gap: 8, marginTop: 4, marginBottom: 12 }}>
@@ -1234,6 +1313,7 @@ export default function MealPlanner() {
                     </button>
                   </div>
 
+                  {renderPlannerShopCard()}
                   <NutritionGuide />
                 </div>
               ) : (
@@ -1295,6 +1375,7 @@ export default function MealPlanner() {
                     </button>
                   </div>
 
+                  {renderPlannerShopCard()}
                   <NutritionGuide />
                 </div>
               )}
