@@ -13,6 +13,7 @@ import PrivacyPolicy from "./components/PrivacyPolicy.jsx";
 import AboutPage from "./components/AboutPage.jsx";
 import TermsPage from "./components/TermsPage.jsx";
 import CoupangDisclaimer from "./components/CoupangDisclaimer.jsx";
+import { getCoupangLink } from "./data/coupangLinks";
 
 const NUTRITION_GUIDES = [
   {
@@ -211,6 +212,15 @@ export default function MealPlanner() {
   const [showOnboarding,  setShowOnboarding]  = useState(false);
   const [onboardingSlide, setOnboardingSlide] = useState(0);
 
+  // ── landing ───────────────────────────────────────────────────────────────
+  const [sampleMeal, setSampleMeal] = useState(() => ({
+    rice:  pickOne(RICE_DB, [], [], [], 1),
+    soup:  pickOne(SOUP_DB, [], [], [], 1),
+    sides: pickTwoSides([], [], [], 1),
+  }));
+  const [showCta,        setShowCta]        = useState(false);
+  const [landingChecked, setLandingChecked] = useState([]);
+
   // ── profile edit state ───────────────────────────────────────────────────
   const [profiles,       setProfiles]       = useState(() => { try { return JSON.parse(localStorage.getItem("mp_profiles") || "[]"); } catch { return []; } });
   const [profileTab,     setProfileTab]     = useState(0);
@@ -271,6 +281,12 @@ export default function MealPlanner() {
       window.Kakao.init('b6e09cf5c3a307c2db30c02d06258e2c');
     }
   }, []);
+
+  useEffect(() => {
+    if (step !== "landing") return;
+    const t = setTimeout(() => setShowCta(true), 3000);
+    return () => clearTimeout(t);
+  }, [step]);
 
   const handleKakaoShare = () => {
     gaEvent('share_kakao');
@@ -575,19 +591,93 @@ export default function MealPlanner() {
   };
 
   // ── Step 0: 랜딩 ──────────────────────────────────────────────────────────
-  const renderLandingStep = () => (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: 16, textAlign: "center" }}>
-      <div style={{ fontSize: 48 }}>🍙</div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: "#333" }}>우리아이 식단표</div>
-      <div style={{ fontSize: 14, color: "#999" }}>랜딩 스크린 (구현 예정)</div>
-      <button
-        onClick={() => { localStorage.setItem("mp_landing_seen", "true"); setStep("profile"); }}
-        style={{ marginTop: 8, background: "#D4537E", color: "#fff", border: "none", borderRadius: 24, padding: "12px 36px", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
-      >
-        시작하기
-      </button>
-    </div>
-  );
+  const renderLandingStep = () => {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const day   = today.getDate();
+    const menuItems = [
+      { emoji: "🍚", name: sampleMeal.rice?.name },
+      { emoji: "🥣", name: sampleMeal.soup?.name },
+      { emoji: "🥗", name: sampleMeal.sides?.[0]?.name },
+      { emoji: "🍳", name: sampleMeal.sides?.[1]?.name },
+    ].filter(item => item.name);
+    const sampleIngreds = [...new Set([
+      ...(sampleMeal.rice?.ingredients  || []),
+      ...(sampleMeal.soup?.ingredients  || []),
+      ...(sampleMeal.sides || []).flatMap(s => s?.ingredients || []),
+    ])];
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "0 16px" }}>
+        <div style={{ width: "100%", maxWidth: 420, background: "#FFF4ED", borderRadius: 20, padding: 16 }}>
+          {/* 배지 */}
+          <div style={{ display: "inline-block", background: "#FFD9C0", color: "#6B2F0A", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700, marginBottom: 12 }}>
+            오늘의 추천
+          </div>
+          {/* 제목 */}
+          <div style={{ fontSize: 22, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4, marginBottom: 4 }}>우리 아이를 위한</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4, marginBottom: 8 }}>{month}월 {day}일 식단</div>
+          <div style={{ fontSize: 13, color: "#999", marginBottom: 16 }}>오늘 뭐 먹이지 — 3초 만에 해결</div>
+          {/* 메뉴 리스트 */}
+          <div style={{ background: "#FFFFFF", borderRadius: 12, overflow: "hidden", marginBottom: 16 }}>
+            {menuItems.map((item, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: i < menuItems.length - 1 ? "1px solid #f5f5f5" : "none" }}>
+                <span style={{ fontSize: 20 }}>{item.emoji}</span>
+                <span style={{ fontSize: 15, color: "#333", fontWeight: 500 }}>{item.name}</span>
+              </div>
+            ))}
+          </div>
+          {/* 구분선 */}
+          <hr style={{ border: "none", borderTop: "1px solid #f0e0e0", margin: "0 0 16px" }} />
+          {/* 장보기 카드 */}
+          <div style={{ background: "#fff", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#e55" }}>🛒 이 식단의 식재료</div>
+              <div style={{ fontSize: 10, color: "#bbb" }}>클릭 시 쿠팡 로켓프레시 ↗</div>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+              {sampleIngreds.map(ing => (
+                <a key={ing}
+                  href={getCoupangLink(ing)}
+                  target="_blank" rel="noreferrer"
+                  onClick={e => {
+                    e.preventDefault();
+                    setLandingChecked(prev => prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]);
+                    gaEvent('coupang_click', { ingredient: ing, list: 'landing' });
+                    if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); }
+                    window.open(e.currentTarget.href, "_blank");
+                  }}
+                  style={{ background: landingChecked.includes(ing) ? "#f0fdf4" : "#fff", border: `1px solid ${landingChecked.includes(ing) ? "#86efac" : "#ffc0a0"}`, borderRadius: 8, padding: "4px 9px", fontSize: 12, color: landingChecked.includes(ing) ? "#16a34a" : "#e55", textDecoration: landingChecked.includes(ing) ? "line-through" : "none", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
+                  {landingChecked.includes(ing) ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
+                </a>
+              ))}
+            </div>
+          </div>
+          {/* 공정위 문구 */}
+          <div style={{ fontSize: 10, color: "#888", lineHeight: 1.6, marginBottom: 16 }}>
+            이 페이지에는 쿠팡 파트너스 활동의 일환으로 수수료를 제공받는 링크가 포함되어 있습니다.
+          </div>
+          {/* CTA */}
+          <div style={{ opacity: showCta ? 1 : 0, transition: "opacity 0.4s", marginBottom: 10 }}>
+            <button
+              onClick={() => { localStorage.setItem("mp_landing_seen", "true"); setStep("profile"); }}
+              style={{ width: "100%", background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 12, padding: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+            >
+              🥢 우리 아이 맞춤 식단 만들기 →
+            </button>
+          </div>
+          {/* 새로고침 */}
+          <div style={{ opacity: showCta ? 1 : 0, transition: "opacity 0.4s", textAlign: "center" }}>
+            <button
+              onClick={() => setSampleMeal({ rice: pickOne(RICE_DB, [], [], [], 1), soup: pickOne(SOUP_DB, [], [], [], 1), sides: pickTwoSides([], [], [], 1) })}
+              style={{ background: "transparent", border: "none", color: "#888", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
+            >
+              🔄 다른 식단 보기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // ── Step 1: 아이 정보 ─────────────────────────────────────────────────────
   const renderProfileStep = () => {
