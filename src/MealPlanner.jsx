@@ -161,8 +161,13 @@ function ageGroupFromAge(age) {
 export default function MealPlanner() {
   // ── core state ──────────────────────────────────────────────────────────
   const [step, setStep] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("mp_weekplan") || "null") ? "planner" : "profile"; }
-    catch { return "profile"; }
+    try {
+      if (JSON.parse(localStorage.getItem("mp_weekplan") || "null")) return "planner";
+      if (localStorage.getItem("mp_landing_seen") === "true") return "profile";
+      return "landing";
+    } catch {
+      return localStorage.getItem("mp_landing_seen") === "true" ? "profile" : "landing";
+    }
   });
 
   const [selectedAges, setAges] = useState(() => {
@@ -203,7 +208,7 @@ export default function MealPlanner() {
   const [viewMode,       setViewMode]      = useState("daily"); // "daily" | "weekly"
 
   // ── onboarding ────────────────────────────────────────────────────────────
-  const [showOnboarding,  setShowOnboarding]  = useState(() => !localStorage.getItem("mp_onboarding_done"));
+  const [showOnboarding,  setShowOnboarding]  = useState(false);
   const [onboardingSlide, setOnboardingSlide] = useState(0);
 
   // ── profile edit state ───────────────────────────────────────────────────
@@ -568,6 +573,21 @@ export default function MealPlanner() {
       </div>
     );
   };
+
+  // ── Step 0: 랜딩 ──────────────────────────────────────────────────────────
+  const renderLandingStep = () => (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: 16, textAlign: "center" }}>
+      <div style={{ fontSize: 48 }}>🍙</div>
+      <div style={{ fontSize: 24, fontWeight: 700, color: "#333" }}>우리아이 식단표</div>
+      <div style={{ fontSize: 14, color: "#999" }}>랜딩 스크린 (구현 예정)</div>
+      <button
+        onClick={() => { localStorage.setItem("mp_landing_seen", "true"); setStep("profile"); }}
+        style={{ marginTop: 8, background: "#D4537E", color: "#fff", border: "none", borderRadius: 24, padding: "12px 36px", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+      >
+        시작하기
+      </button>
+    </div>
+  );
 
   // ── Step 1: 아이 정보 ─────────────────────────────────────────────────────
   const renderProfileStep = () => {
@@ -987,6 +1007,7 @@ export default function MealPlanner() {
       )}
 
       <div style={{ padding: "14px 12px 60px" }}>
+        {step === "landing"  && renderLandingStep()}
         {step === "profile"  && renderProfileStep()}
         {step === "mealtype" && renderMealtypeStep()}
         {step === "fridge"   && renderFridgeStep()}
