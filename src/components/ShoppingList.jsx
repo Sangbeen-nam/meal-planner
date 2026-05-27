@@ -55,7 +55,7 @@ export function ShoppingList({ meal, weekPlan, showWeeklyShop, setShowWeeklyShop
               <a key={ing}
                 href={link}
                 target="_blank" rel="noreferrer"
-                onClick={e => { e.preventDefault(); toggleCheck(ing); gaEvent('coupang_click', { ingredient: ing, list: 'daily' }); if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); } window.open(link, "_blank"); }}
+                onClick={e => { e.preventDefault(); toggleCheck(ing); gaEvent('coupang_click', { ingredient: ing, list: 'daily' }); window.open(link, "_blank"); }}
                 style={{ ...baseStyle, background: checked ? "#f0fdf4" : "#fff", border: `1px solid ${checked ? "#86efac" : "#ffc0a0"}`, color: checked ? "#16a34a" : "#e55", textDecoration: checked ? "line-through" : "none", cursor: "pointer" }}>
                 {checked ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
               </a>
@@ -96,7 +96,7 @@ export function ShoppingList({ meal, weekPlan, showWeeklyShop, setShowWeeklyShop
               <a key={ing}
                 href={getCoupangLink(ing)}
                 target="_blank" rel="noreferrer"
-                onClick={e => { e.preventDefault(); toggleWeeklyCheck(ing); gaEvent('coupang_click', { ingredient: ing, list: 'weekly' }); if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); } window.open(e.currentTarget.href, "_blank"); }}
+                onClick={e => { e.preventDefault(); toggleWeeklyCheck(ing); gaEvent('coupang_click', { ingredient: ing, list: 'weekly' }); window.open(e.currentTarget.href, "_blank"); }}
                 style={{ background: weeklyChecked.includes(ing) ? "#f0fdf4" : "#fff", border: `1px solid ${weeklyChecked.includes(ing) ? "#86efac" : "#fed7aa"}`, borderRadius: 8, padding: "5px 10px", fontSize: 12, color: weeklyChecked.includes(ing) ? "#16a34a" : "#c2410c", textDecoration: weeklyChecked.includes(ing) ? "line-through" : "none", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
                 {weeklyChecked.includes(ing) ? "✅" : ""}{ing}<span style={{ fontSize: 10, color: "#bbb" }}>↗</span>
               </a>

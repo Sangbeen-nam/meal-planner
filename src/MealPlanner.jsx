@@ -270,9 +270,6 @@ export default function MealPlanner() {
       link.href = canvas.toDataURL("image/png");
       link.click();
       gaEvent('save_image', { view: filename.includes('주간') ? 'weekly' : 'daily' });
-      if (typeof window !== 'undefined' && window.gtag) {
-        window.gtag('event', 'meal_image_saved', { type: filename.includes('주간') ? 'weekly' : 'daily' });
-      }
     } catch {
       alert("이미지 저장에 실패했어요. 다시 시도해주세요.");
     }
@@ -290,11 +287,12 @@ export default function MealPlanner() {
     return () => clearTimeout(t);
   }, [step]);
 
+  useEffect(() => {
+    if (step === "landing") gaEvent('landing_view', {});
+  }, [step]);
+
   const handleKakaoShare = () => {
     gaEvent('share_kakao');
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'kakao_share_clicked');
-    }
     if (!window.Kakao) return;
     window.Kakao.Share.sendDefault({
       objectType: 'feed',
@@ -516,13 +514,6 @@ export default function MealPlanner() {
         setActiveMeal(mealsToUse[0]);
         setStep("planner");
         gaEvent('meal_generate', { age_groups: selectedAges.join(','), meal_count: mealsToUse.length });
-        if (typeof window !== 'undefined' && window.gtag) {
-          window.gtag('event', 'meal_plan_generated', {
-            age_group: selectedAges[0] || 'unknown',
-            allergies_selected: allergenIngredients.length,
-            has_fridge_items: selectedIngreds.length > 0
-          });
-        }
       } catch (e) {
         console.error("식단 생성 오류:", e);
         alert("식단 생성 중 오류가 발생했어요. 다시 시도해주세요.");
@@ -532,26 +523,8 @@ export default function MealPlanner() {
     }, 2400);
   };
 
-  const handleRegenMeal = () => {
-    gaEvent('meal_regen_meal');
-    const minAgeIndex = getMinAgeIndex(selectedAges);
-    const rice  = pickOne(RICE_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
-    const soup  = pickOne(SOUP_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
-    const sides = pickTwoSides(selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
-    setWeekPlan(prev => {
-      if (!prev?.[activeDay]?.[activeMeal]) return prev;
-      const next = JSON.parse(JSON.stringify(prev));
-      next[activeDay][activeMeal] = { rice, soup, sides };
-      safeSet("mp_weekplan", next);
-      return next;
-    });
-  };
-
   const onReplaceItem = (type, mealKey = activeMeal) => {
     gaEvent('meal_replace_item', { item_type: type });
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'meal_swap_clicked', { meal_type: type === 'rice' ? 'rice' : type === 'soup' ? 'soup' : 'side' });
-    }
     if (!weekPlan?.[activeDay]?.[mealKey]) return;
     const minAgeIndex = getMinAgeIndex(selectedAges);
     setWeekPlan(prev => {
@@ -649,7 +622,6 @@ export default function MealPlanner() {
                       e.preventDefault();
                       setLandingChecked(prev => prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]);
                       gaEvent('coupang_click', { ingredient: ing, list: 'landing' });
-                      if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); }
                       window.open(link, "_blank");
                     }}
                     style={{ ...baseStyle, background: checked ? "#f0fdf4" : "#fff", border: `1px solid ${checked ? "#86efac" : "#ffc0a0"}`, color: checked ? "#16a34a" : "#e55", textDecoration: checked ? "line-through" : "none", cursor: "pointer" }}>
@@ -671,7 +643,7 @@ export default function MealPlanner() {
           {/* CTA */}
           <div style={{ opacity: showCta ? 1 : 0, transition: "opacity 0.4s", marginBottom: 10 }}>
             <button
-              onClick={() => { localStorage.setItem("mp_landing_seen", "true"); setStep("profile"); }}
+              onClick={() => { gaEvent('landing_cta_click', {}); localStorage.setItem("mp_landing_seen", "true"); setStep("profile"); }}
               style={{ width: "100%", background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 12, padding: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
             >
               🥢 우리 아이 맞춤 식단 만들기 →
@@ -680,7 +652,7 @@ export default function MealPlanner() {
           {/* 새로고침 */}
           <div style={{ opacity: showCta ? 1 : 0, transition: "opacity 0.4s", textAlign: "center" }}>
             <button
-              onClick={() => setSampleMeal({ rice: pickOne(RICE_DB, [], [], [], 1), soup: pickOne(SOUP_DB, [], [], [], 1), sides: pickTwoSides([], [], [], 1) })}
+              onClick={() => { gaEvent('landing_refresh_click', {}); setSampleMeal({ rice: pickOne(RICE_DB, [], [], [], 1), soup: pickOne(SOUP_DB, [], [], [], 1), sides: pickTwoSides([], [], [], 1) }); }}
               style={{ background: "transparent", border: "none", color: "#888", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
             >
               🔄 다른 식단 보기
@@ -718,7 +690,7 @@ export default function MealPlanner() {
         <div style={{ fontSize: 10, color: "#bbb", marginBottom: 10 }}>클릭 1번으로 쿠팡 로켓프레시 ↗</div>
         <div style={{ display: "flex", background: "#f0f0f0", borderRadius: 20, padding: 2, width: "fit-content", marginBottom: 10 }}>
           {[["today", "오늘"], ["week", "이번주"]].map(([val, label]) => (
-            <button key={val} onClick={() => setPlannerShopScope(val)}
+            <button key={val} onClick={() => { setPlannerShopScope(val); gaEvent('shop_scope_change', { scope: val }); }}
               style={{ padding: "5px 14px", borderRadius: 18, border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", background: plannerShopScope === val ? "#FF6B6B" : "transparent", color: plannerShopScope === val ? "#fff" : "#888", transition: "all 0.15s" }}>
               {label}
             </button>
@@ -737,7 +709,6 @@ export default function MealPlanner() {
                   e.preventDefault();
                   setPlannerShopChecked(prev => prev.includes(ing) ? prev.filter(i => i !== ing) : [...prev, ing]);
                   gaEvent('coupang_click', { ingredient: ing, list: 'planner_inline' });
-                  if (typeof window !== 'undefined' && window.gtag) { window.gtag('event', 'coupang_link_clicked', { ingredient: ing }); }
                   window.open(link, "_blank");
                 }}
                 style={{ ...baseStyle, background: checked ? "#f0fdf4" : "#fff", border: `1px solid ${checked ? "#86efac" : "#ffc0a0"}`, color: checked ? "#16a34a" : "#e55", textDecoration: checked ? "line-through" : "none", cursor: "pointer" }}>
@@ -774,9 +745,7 @@ export default function MealPlanner() {
         <div style={{ marginBottom: 20 }}>
           <button
             onClick={() => {
-              if (typeof window !== 'undefined' && window.gtag) {
-                window.gtag('event', 'cta_main_click', { location: 'hero' });
-              }
+              gaEvent('profile_scroll_cta_click', { location: 'hero' });
               formRef.current?.scrollIntoView({ behavior: 'smooth' });
             }}
             onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"}
@@ -1159,7 +1128,7 @@ export default function MealPlanner() {
             <div style={{ color: "rgba(255,255,255,0.92)", fontSize: 12 }}>밥 · 국 · 반찬 2가지 균형 식단</div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
-            <button onClick={() => { setOnboardingSlide(0); setShowOnboarding(true); }} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 12px", fontSize: 12, cursor: "pointer" }}>❓</button>
+            <button onClick={() => { gaEvent('help_open', {}); setOnboardingSlide(0); setShowOnboarding(true); }} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 12px", fontSize: 12, cursor: "pointer" }}>❓</button>
             {(step === "planner" || step === "recipe") && (
               <button onClick={() => setStep("profile")} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.5)", color: "#fff", borderRadius: 20, padding: "5px 12px", fontSize: 12, cursor: "pointer" }}>⚙️ 설정</button>
             )}
@@ -1221,7 +1190,7 @@ export default function MealPlanner() {
 
               {/* 요일 탭 */}
               <div style={{ display: "flex", gap: 5, marginBottom: 12, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
-                {DAYS.map(d => <button key={d} onClick={() => setActiveDay(d)} style={{ minWidth: 36, padding: "6px 8px", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, background: activeDay === d ? "#ff6b6b" : "#fff", color: activeDay === d ? "#fff" : "#ccc", border: activeDay === d ? "1px solid #ff6b6b" : "1px solid #eee", boxShadow: activeDay === d ? "0 2px 8px rgba(255,107,107,0.28)" : "none" }}>{d}</button>)}
+                {DAYS.map(d => <button key={d} onClick={() => { setActiveDay(d); gaEvent('day_tab_click', { day: d }); }} style={{ minWidth: 36, padding: "6px 8px", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, background: activeDay === d ? "#ff6b6b" : "#fff", color: activeDay === d ? "#fff" : "#ccc", border: activeDay === d ? "1px solid #ff6b6b" : "1px solid #eee", boxShadow: activeDay === d ? "0 2px 8px rgba(255,107,107,0.28)" : "none" }}>{d}</button>)}
               </div>
 
               {viewMode === "daily" ? (
