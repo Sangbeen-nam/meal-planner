@@ -136,6 +136,28 @@ const MEAL_INFO = {
   "저녁": { icon: "🌙", bg: "#eff6ff", badge: "#bfdbfe", text: "#1e3a8a" },
 };
 
+const DAY_DOW = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:0 };
+const DAY_KOR = ["일","월","화","수","목","금","토"];
+
+function getDateForDay(dayKor) {
+  const today = new Date();
+  const todayDow = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((todayDow + 6) % 7));
+  const target = new Date(monday);
+  target.setDate(monday.getDate() + ((DAY_DOW[dayKor] + 6) % 7));
+  return target;
+}
+function formatDateLabel(d) {
+  return `${d.getMonth()+1}.${d.getDate()} (${DAY_KOR[d.getDay()]})`;
+}
+function formatDateFile(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 const THIS_YEAR = new Date().getFullYear();
 const BIRTH_YEARS = Array.from({ length: THIS_YEAR - 2008 + 1 }, (_, i) => 2008 + i);
 const BIRTH_MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -262,15 +284,85 @@ export default function MealPlanner() {
   const formRef       = useRef(null);
 
   const handleSaveImage = async (ref, filename) => {
+    const view = filename.includes('주간') ? 'weekly' : 'daily';
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    let canvas;
     try {
       const { default: html2canvas } = await import("html2canvas");
-      const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      canvas = await html2canvas(ref.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+    } catch (err) {
+      console.error("html2canvas failed:", err);
+      gaEvent('save_image_error', {
+        view, reason: err?.message?.substring(0, 100) || 'canvas_error',
+        is_ios: isIOS, stage: 'canvas',
+      });
+      alert("이미지 생성에 실패했어요. 다시 시도해주세요.");
+      return;
+    }
+
+    if (isIOS) {
+      try {
+        const win = window.open();
+        if (!win) {
+          gaEvent('save_image_error', {
+            view, reason: 'popup_blocked', is_ios: true, stage: 'legacy_popup'
+          });
+          alert("팝업이 차단되어 저장할 수 없어요. 팝업 허용 후 다시 시도해주세요.");
+          return;
+        }
+
+        const dataUrl = canvas.toDataURL('image/png');
+
+        win.document.write(`<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>우리 아이 식단표 - 길게 눌러 저장</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; padding: 0; }
+    .guide { position: sticky; top: 0; background: #FFF4ED; padding: 16px; text-align: center; font-size: 15px; font-weight: 700; color: #6B2F0A; border-bottom: 1px solid #FFD9C0; z-index: 10; }
+    .img-wrap { padding: 16px; text-align: center; }
+    img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .hint { padding: 16px; text-align: center; font-size: 12px; color: #888; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="guide">📸 이미지를 길게 눌러<br>"사진에 저장"을 선택하세요</div>
+  <div class="img-wrap"><img src="${dataUrl}" alt="우리 아이 식단표"></div>
+  <div class="hint">💡 메뉴가 안 뜨면 화면을 캡처(스크린샷)해도 됩니다</div>
+</body>
+</html>`);
+        win.document.close();
+
+        gaEvent('save_image', { view, method: 'ios_legacy' });
+      } catch (err) {
+        console.error("iOS legacy save failed:", err);
+        gaEvent('save_image_error', {
+          view, reason: err.message?.substring(0, 100) || 'legacy_failed',
+          is_ios: true, stage: 'legacy',
+        });
+        alert("이미지 저장에 실패했어요. 다시 시도해주세요.");
+      }
+      return;
+    }
+
+    try {
       const link = document.createElement("a");
       link.download = filename;
       link.href = canvas.toDataURL("image/png");
       link.click();
-      gaEvent('save_image', { view: filename.includes('주간') ? 'weekly' : 'daily' });
-    } catch {
+      gaEvent('save_image', { view, method: 'download' });
+    } catch (err) {
+      console.error("Download failed:", err);
+      gaEvent('save_image_error', {
+        view, reason: err.message?.substring(0, 100),
+        is_ios: false, stage: 'download',
+      });
       alert("이미지 저장에 실패했어요. 다시 시도해주세요.");
     }
   };
@@ -1198,8 +1290,8 @@ export default function MealPlanner() {
                 <div>
                   <div ref={dailySaveRef} style={{ background: "#fff", borderRadius: 16, padding: "14px 12px", border: "1px solid #f0f0f0" }}>
                     <div style={{ textAlign: "center", marginBottom: 12 }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: "#ff6b6b" }}>🍱 우리 아이 주간 식단표</div>
-                      <div style={{ fontSize: 13, color: "#666", marginTop: 2 }}>{activeDay}요일 식단</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: "#ff6b6b" }}>🍱 우리 아이 주간 식단표</div>
+                      <div style={{ fontSize: 15, color: "#666", marginTop: 2 }}>{formatDateLabel(getDateForDay(activeDay))} 식단</div>
                     </div>
 
                     {mealsInPlan.map(m => {
@@ -1272,7 +1364,7 @@ export default function MealPlanner() {
                       style={{ flex: 1, padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "#fff", color: "#ff6b6b", border: "2px solid #ff6b6b", cursor: "pointer", fontFamily: "inherit" }}>
                       🔄 오늘 다시 뽑기
                     </button>
-                    <button onClick={() => handleSaveImage(dailySaveRef, `식단표_${activeDay}요일.png`)}
+                    <button onClick={() => handleSaveImage(dailySaveRef, `식단표_${formatDateFile(getDateForDay(activeDay))}_${activeDay}.png`)}
                       style={{ flex: 1, padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 12px rgba(255,107,107,0.3)" }}>
                       📸 오늘 식단 저장
                     </button>
@@ -1292,7 +1384,7 @@ export default function MealPlanner() {
                   <div style={{ overflowX: "auto" }}>
                     <div ref={weeklySaveRef} style={{ background: "#fff", borderRadius: 16, padding: "16px 14px", border: "1px solid #f0f0f0", minWidth: "860px" }}>
                       <div style={{ fontSize: 17, fontWeight: 700, color: "#e55", marginBottom: 12, textAlign: "center" }}>
-                        🍱 우리 아이 주간 식단표
+                        🍱 {formatDateLabel(getDateForDay("월"))} ~ {formatDateLabel(getDateForDay("일"))} 식단
                       </div>
                       {selGroups.length > 0 && (
                         <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 12, justifyContent: "center" }}>
@@ -1334,7 +1426,7 @@ export default function MealPlanner() {
                   </div>
 
                   <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                    <button onClick={() => handleSaveImage(weeklySaveRef, "주간_식단표.png")}
+                    <button onClick={() => handleSaveImage(weeklySaveRef, `식단표_${formatDateFile(getDateForDay("월"))}_주간.png`)}
                       style={{ flex: 1, padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 12px rgba(255,107,107,0.3)" }}>
                       📸 주간 식단 저장
                     </button>
