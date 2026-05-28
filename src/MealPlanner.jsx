@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { gaEvent } from "./utils/analytics";
-import { DAYS, MEALS, FOOD_PREFS, INGREDIENT_GROUPS, AGE_GROUPS, ALLERGY_OPTIONS } from "./data/constants";
+import { DAYS, MEALS, FOOD_PREFS, INGREDIENT_GROUPS, AGE_GROUPS, ALLERGY_OPTIONS, SHOW_COUPANG } from "./data/constants";
 import { calcMealGoal, fmtN } from "./utils/nutrition";
 import { getMinAgeIndex, generateWeekPlan, pickOne, pickTwoSides, handleReplaceItem } from "./utils/mealPicker";
 import { RICE_DB } from "./data/riceDB";
@@ -693,6 +693,7 @@ export default function MealPlanner() {
               </div>
             ))}
           </div>
+          {SHOW_COUPANG && (<>
           {/* 구분선 */}
           <hr style={{ border: "none", borderTop: "1px solid #f0e0e0", margin: "0 0 16px" }} />
           {/* 장보기 카드 */}
@@ -732,6 +733,7 @@ export default function MealPlanner() {
           <div style={{ fontSize: 10, color: "#888", lineHeight: 1.6, marginBottom: 16 }}>
             이 페이지에는 쿠팡 파트너스 활동의 일환으로 수수료를 제공받는 링크가 포함되어 있습니다.
           </div>
+          </>)}
           {/* CTA */}
           <div style={{ opacity: showCta ? 1 : 0, transition: "opacity 0.4s", marginBottom: 10 }}>
             <button
@@ -757,6 +759,7 @@ export default function MealPlanner() {
 
   // ── Planner 인라인 장보기 카드 ────────────────────────────────────────────
   const renderPlannerShopCard = () => {
+    if (!SHOW_COUPANG) return null;
     const ingreds = plannerShopScope === "today"
       ? [...new Set(
           mealsInPlan.flatMap(m =>
@@ -978,7 +981,7 @@ export default function MealPlanner() {
         </div>
 
         <NutritionGuide />
-        <CoupangDisclaimer />
+        {SHOW_COUPANG && <CoupangDisclaimer />}
       </div>
     );
   };
@@ -1448,7 +1451,7 @@ export default function MealPlanner() {
                   본 정보는 일반 참고용이며 의학적 진단을 대체하지 않습니다.
                 </p>
               </div>
-              <CoupangDisclaimer />
+              {SHOW_COUPANG && <CoupangDisclaimer />}
             </div>
           );
         })()}
@@ -1469,7 +1472,7 @@ export default function MealPlanner() {
                 한국 영양학회 기준을 참고하여 밥·국·반찬 2가지 균형 식단을 제공하며, 알레르기 자동 필터 및 장보기 목록 기능을 포함합니다.
               </p>
             </div>
-            {/* 쿠팡파트너스 고지 */}
+            {SHOW_COUPANG && (
             <div style={{ background: "#fff8f0", border: "1px solid #ffd0b0", borderRadius: 12, padding: "12px 16px", marginBottom: 10, display: "flex", gap: 10, alignItems: "flex-start" }}>
               <span style={{ fontSize: 18, flexShrink: 0 }}>📢</span>
               <div>
@@ -1479,6 +1482,7 @@ export default function MealPlanner() {
                 </p>
               </div>
             </div>
+            )}
             {/* 의료 면책 */}
             <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: "10px 14px", marginBottom: 10 }}>
               <p style={{ fontSize: 12, color: "#78350f", lineHeight: 1.8, margin: 0 }}>

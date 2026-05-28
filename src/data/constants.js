@@ -1,3 +1,5 @@
+export const SHOW_COUPANG = true;  // 쿠팡 파트너스 노출 토글. 애드센스 재심사 때 false로 변경 후 통과 시 true로 복구.
+
 export const DAYS = ["월","화","수","목","금","토","일"];
 export const MEALS = ["아침","점심","저녁"];
 
