@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { gaEvent } from "./utils/analytics";
 import { DAYS, MEALS, FOOD_PREFS, INGREDIENT_GROUPS, AGE_GROUPS, ALLERGY_OPTIONS, SHOW_COUPANG } from "./data/constants";
 import { calcMealGoal, fmtN } from "./utils/nutrition";
@@ -181,6 +182,8 @@ function ageGroupFromAge(age) {
 }
 
 export default function MealPlanner() {
+  const navigate = useNavigate();
+
   // ── core state ──────────────────────────────────────────────────────────
   const [step, setStep] = useState(() => {
     try {
@@ -1208,7 +1211,13 @@ export default function MealPlanner() {
   const safeMeal    = mealsInPlan.includes(activeMeal) ? activeMeal : (mealsInPlan[0] || activeMeal);
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(150deg,#fff8f2 0%,#ffecd8 40%,#f8f0ff 100%)", fontFamily: "Georgia, serif" }}>
+    <Routes>
+      <Route path="/about"      element={<AboutPage     onBack={() => navigate(-1)} />} />
+      <Route path="/privacy"    element={<PrivacyPolicy onBack={() => navigate(-1)} />} />
+      <Route path="/terms"      element={<TermsPage     onBack={() => navigate(-1)} />} />
+      <Route path="/blog/:slug" element={<div style={{ padding: 40, textAlign: "center", fontFamily: "Georgia, serif" }}>블로그 준비중</div>} />
+      <Route path="*" element={
+      <div style={{ minHeight: "100vh", background: "linear-gradient(150deg,#fff8f2 0%,#ffecd8 40%,#f8f0ff 100%)", fontFamily: "Georgia, serif" }}>
       {showOnboarding && renderOnboarding()}
       {renderLoadingOverlay()}
 
@@ -1454,12 +1463,9 @@ export default function MealPlanner() {
         })()}
 
         {step === "recipe"  && <RecipeView item={viewRecipe} onBack={() => setStep("planner")} />}
-        {step === "privacy" && <PrivacyPolicy onBack={() => setStep("profile")} />}
-        {step === "about"   && <AboutPage onBack={() => setStep("profile")} />}
-        {step === "terms"   && <TermsPage onBack={() => setStep("profile")} />}
 
         {/* Footer */}
-        {step !== "privacy" && step !== "about" && step !== "terms" && (
+        {(
           <div style={{ marginTop: 20 }}>
             {/* 서비스 안내 */}
             <div style={{ background: "#f8f9ff", border: "1px solid #e0e7ff", borderRadius: 14, padding: "14px 16px", marginBottom: 10 }}>
@@ -1493,15 +1499,15 @@ export default function MealPlanner() {
             {/* 메뉴 버튼 */}
             <div style={{ background: "#fff", borderRadius: 14, overflow: "hidden", border: "1px solid #eee" }}>
               <div style={{ display: "flex" }}>
-                <button onClick={() => setStep("about")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
+                <button onClick={() => navigate("/about")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
                   <div style={{ fontSize: 16, marginBottom: 3 }}>ℹ️</div>
                   <div style={{ fontSize: 12, color: "#555", fontWeight: 600 }}>서비스 소개</div>
                 </button>
-                <button onClick={() => setStep("terms")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
+                <button onClick={() => navigate("/terms")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
                   <div style={{ fontSize: 16, marginBottom: 3 }}>📄</div>
                   <div style={{ fontSize: 12, color: "#555", fontWeight: 600 }}>이용약관</div>
                 </button>
-                <button onClick={() => setStep("privacy")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
+                <button onClick={() => navigate("/privacy")} style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", borderRight: "1px solid #eee", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}>
                   <div style={{ fontSize: 16, marginBottom: 3 }}>📋</div>
                   <div style={{ fontSize: 12, color: "#555", fontWeight: 600 }}>개인정보처리방침</div>
                 </button>
@@ -1515,5 +1521,7 @@ export default function MealPlanner() {
         )}
       </div>
     </div>
+    } />
+    </Routes>
   );
 }

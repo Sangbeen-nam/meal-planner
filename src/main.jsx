@@ -1,13 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import MealPlanner from './MealPlanner.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <MealPlanner />
-    </ErrorBoundary>
+    <BrowserRouter>
+      <ErrorBoundary>
+        <MealPlanner />
+      </ErrorBoundary>
+    </BrowserRouter>
   </React.StrictMode>
 )
 
