@@ -53,7 +53,7 @@ export default function AboutPage({ onBack }) {
               ["⚠️", "알레르기 자동 필터", "계란·우유·밀·새우·땅콩 등 주요 알레르기 식품을 선택하면 해당 재료가 포함된 메뉴를 자동으로 제외합니다."],
               ["🥦", "냉장고 재료 활용", "현재 있는 재료를 선택하면 그 재료가 들어간 메뉴를 우선으로 추천합니다."],
               ["🔄", "메뉴 즉시 교체", "마음에 들지 않는 메뉴는 🔄 버튼 한 번으로 바로 다른 메뉴로 바꿀 수 있습니다."],
-              ["🛒", "장보기 목록 자동 생성", "주간 식단에 필요한 재료를 한눈에 확인하고 쿠팡에서 바로 구매할 수 있습니다."],
+              ["🛒", "장보기 목록 자동 생성", "주간 식단에 필요한 재료를 한눈에 확인할 수 있습니다."],
               ["🧬", "영양 충족률 확인", "단백질·칼슘·철분·비타민C·식이섬유의 1끼 영양 충족률을 한눈에 확인할 수 있습니다."],
             ].map(([icon, title, desc]) => (
               <div key={title} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 12px", background: "#fff8f0", borderRadius: 12 }}>
@@ -70,7 +70,14 @@ export default function AboutPage({ onBack }) {
         {/* 연령별 식단 기준 */}
         <div style={card}>
           <div style={h2}>📊 연령별 식단 구성 기준</div>
-          <div style={{ fontSize: 12, color: "#aaa", marginBottom: 10 }}>한국 영양학회 기준을 참고하여 구성하였습니다.</div>
+          <div style={{ background: "#fff8f0", border: "1px solid #ffd0b0", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#c2410c", marginBottom: 6 }}>📋 데이터 출처</div>
+            <ul style={{ margin: 0, padding: "0 0 0 16px", color: "#666", fontSize: 12, lineHeight: 2 }}>
+              <li>한국영양학회 한국인 영양소 섭취기준 (KDRI 2020)</li>
+              <li>식품의약품안전처 식품영양성분 데이터베이스</li>
+              <li>연령별 권장 섭취량 기준은 KDRI 2020을 따랐습니다.</li>
+            </ul>
+          </div>
           {[
             ["🍼", "영아 (0~2세)", "#f9a8d4", "묽은 죽·이유식 위주로 구성하며, 알레르기 유발 가능 식품을 신중하게 도입합니다. 염분·설탕은 최소화합니다."],
             ["🐣", "유아 (3~5세)", "#fdba74", "밥·국·반찬 형태로 전환하되, 재료를 작게 썰어 소화하기 쉽게 조리합니다. 다양한 채소와 단백질을 골고루 제공합니다."],
@@ -99,12 +106,19 @@ export default function AboutPage({ onBack }) {
 
         {/* 운영자 정보 */}
         <div style={card}>
-          <div style={h2}>👤 운영자 정보</div>
+          <div style={h2}>👤 운영자 소개</div>
+          <p style={{ ...p, marginBottom: 14 }}>
+            안녕하세요, 두 아이를 키우는 워킹대디 남상빈입니다.<br />
+            매일 저녁 "오늘 뭐 먹이지?" 고민하다 직접 이 앱을 만들었습니다.<br />
+            한국영양학회와 식약처 데이터를 기반으로, 우리 아이에게 맞는 식단을<br />
+            3초 안에 찾을 수 있도록 설계했습니다.<br />
+            피드백은 언제든 환영합니다.
+          </p>
           <div style={{ fontSize: 12, color: "#666", lineHeight: 2 }}>
             <div>운영자: 남상빈</div>
             <div>이메일: <a href="mailto:skatkdqla173123@gmail.com" style={{ color: "#ff6b6b" }}>skatkdqla173123@gmail.com</a></div>
-            <div>서비스 주소: mealplanner365.co.kr</div>
-            <div>서비스 시작: 2026년</div>
+            <div>서비스: mealplanner365.co.kr</div>
+            <div>시작: 2026년</div>
           </div>
         </div>
 

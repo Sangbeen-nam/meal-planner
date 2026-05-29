@@ -12,7 +12,6 @@ import { ShoppingList } from "./components/ShoppingList";
 import PrivacyPolicy from "./components/PrivacyPolicy.jsx";
 import AboutPage from "./components/AboutPage.jsx";
 import TermsPage from "./components/TermsPage.jsx";
-import CoupangDisclaimer from "./components/CoupangDisclaimer.jsx";
 import { getCoupangLink } from "./data/coupangLinks";
 
 const NUTRITION_GUIDES = [
@@ -981,7 +980,6 @@ export default function MealPlanner() {
         </div>
 
         <NutritionGuide />
-        {SHOW_COUPANG && <CoupangDisclaimer />}
       </div>
     );
   };
@@ -1451,7 +1449,6 @@ export default function MealPlanner() {
                   본 정보는 일반 참고용이며 의학적 진단을 대체하지 않습니다.
                 </p>
               </div>
-              {SHOW_COUPANG && <CoupangDisclaimer />}
             </div>
           );
         })()}
@@ -1491,7 +1488,7 @@ export default function MealPlanner() {
             </div>
             {/* 운영자 정보 */}
             <div style={{ textAlign: "center", padding: "8px 0", marginBottom: 8 }}>
-              <div style={{ fontSize: 11, color: "#aaa" }}>운영자: 남상빈 · <a href="mailto:skatkdqla173123@gmail.com" style={{ color: "#ff6b6b", textDecoration: "none" }}>skatkdqla173123@gmail.com</a></div>
+              <div style={{ fontSize: 12, color: "#888" }}>운영자: 남상빈 · <a href="mailto:skatkdqla173123@gmail.com" style={{ color: "#ff6b6b", textDecoration: "none" }}>skatkdqla173123@gmail.com</a></div>
             </div>
             {/* 메뉴 버튼 */}
             <div style={{ background: "#fff", borderRadius: 14, overflow: "hidden", border: "1px solid #eee" }}>
