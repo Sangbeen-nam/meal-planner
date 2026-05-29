@@ -14,6 +14,7 @@ import PrivacyPolicy from "./components/PrivacyPolicy.jsx";
 import AboutPage from "./components/AboutPage.jsx";
 import TermsPage from "./components/TermsPage.jsx";
 import { getCoupangLink } from "./data/coupangLinks";
+import BlogPost from "./blog/BlogPost";
 
 const NUTRITION_GUIDES = [
   {
@@ -1215,7 +1216,7 @@ export default function MealPlanner() {
       <Route path="/about"      element={<AboutPage     onBack={() => navigate(-1)} />} />
       <Route path="/privacy"    element={<PrivacyPolicy onBack={() => navigate(-1)} />} />
       <Route path="/terms"      element={<TermsPage     onBack={() => navigate(-1)} />} />
-      <Route path="/blog/:slug" element={<div style={{ padding: 40, textAlign: "center", fontFamily: "Georgia, serif" }}>블로그 준비중</div>} />
+      <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="*" element={
       <div style={{ minHeight: "100vh", background: "linear-gradient(150deg,#fff8f2 0%,#ffecd8 40%,#f8f0ff 100%)", fontFamily: "Georgia, serif" }}>
       {showOnboarding && renderOnboarding()}
