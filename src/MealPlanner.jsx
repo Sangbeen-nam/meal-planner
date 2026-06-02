@@ -15,6 +15,7 @@ import AboutPage from "./components/AboutPage.jsx";
 import TermsPage from "./components/TermsPage.jsx";
 import { getCoupangLink } from "./data/coupangLinks";
 import BlogPost from "./blog/BlogPost";
+import BlogList from "./blog/BlogList";
 
 const NUTRITION_GUIDES = [
   {
@@ -1216,6 +1217,7 @@ export default function MealPlanner() {
       <Route path="/about"      element={<AboutPage     onBack={() => navigate(-1)} />} />
       <Route path="/privacy"    element={<PrivacyPolicy onBack={() => navigate(-1)} />} />
       <Route path="/terms"      element={<TermsPage     onBack={() => navigate(-1)} />} />
+      <Route path="/blog" element={<BlogList />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="*" element={
       <div style={{ minHeight: "100vh", background: "linear-gradient(150deg,#fff8f2 0%,#ffecd8 40%,#f8f0ff 100%)", fontFamily: "Georgia, serif" }}>
@@ -1516,6 +1518,15 @@ export default function MealPlanner() {
                   <div style={{ fontSize: 16, marginBottom: 3 }}>💬</div>
                   <div style={{ fontSize: 12, color: "#555", fontWeight: 600 }}>문의하기</div>
                 </a>
+              </div>
+              <div style={{ borderTop: "1px solid #eee", display: "flex", justifyContent: "center" }}>
+                <button
+                  onClick={() => navigate("/blog")}
+                  style={{ flex: 1, padding: "12px 4px", background: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}
+                >
+                  <div style={{ fontSize: 16, marginBottom: 3 }}>📝</div>
+                  <div style={{ fontSize: 12, color: "#555", fontWeight: 600 }}>식단 이야기</div>
+                </button>
               </div>
             </div>
           </div>
