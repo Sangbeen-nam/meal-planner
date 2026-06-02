@@ -83,8 +83,15 @@ export default function BlogPost() {
           </button>
         </div>
 
+        {/* 면책 문구 */}
+        <div style={{ marginTop: 20, padding: "12px 14px", background: "#f9f9f9", borderRadius: 10, border: "1px solid #eee", fontSize: 11, color: "#999", lineHeight: 1.7 }}>
+          {post.disclaimer
+            ? post.disclaimer
+            : "본 내용은 일반 정보 제공 목적으로 작성되었습니다. 전문가 상담을 권장합니다."}
+        </div>
+
         {/* 작성자 */}
-        <div style={{ marginTop: 24, padding: "14px 16px", background: "#fff", borderRadius: 12, border: "1px solid #ffe4e0", fontSize: 12, color: "#888", textAlign: "center" }}>
+        <div style={{ marginTop: 12, padding: "14px 16px", background: "#fff", borderRadius: 12, border: "1px solid #ffe4e0", fontSize: 12, color: "#888", textAlign: "center" }}>
           작성자: 남상빈 (mealplanner365.co.kr 운영자, 두 아이의 아빠)
         </div>
 
