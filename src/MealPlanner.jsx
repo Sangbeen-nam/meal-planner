@@ -392,14 +392,18 @@ export default function MealPlanner() {
     const carbsPct = Math.max(0, 100 - proteinPct - fatPct);
 
     let ageLabel = "";
-    const fp = profiles[0];
-    if (fp) {
-      const age = calcAgeFromBirth(fp.birthYear, fp.birthMonth);
+    for (const p of profiles.filter(Boolean)) {
+      const age = calcAgeFromBirth(p.birthYear, p.birthMonth);
       if (age !== null) {
         const ag = ageGroupFromAge(age);
         const agObj = AGE_GROUPS.find(g => g.id === ag);
         ageLabel = agObj ? `${agObj.label} ${age}세` : `만 ${age}세`;
+        break;
       }
+    }
+    if (!ageLabel && selectedAges.length > 0) {
+      const agObj = AGE_GROUPS.find(g => g.id === selectedAges[0]);
+      if (agObj) ageLabel = agObj.label;
     }
 
     const dateObj = getDateForDay(activeDay);
