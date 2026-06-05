@@ -371,6 +371,170 @@ export default function MealPlanner() {
     }
   };
 
+  const handleSaveDailyCard = async () => {
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    const dayNutri = mealsInPlan.reduce((acc, m) => {
+      const meal = weekPlan[activeDay]?.[m];
+      if (!meal) return acc;
+      return [meal.rice, meal.soup, ...(meal.sides || [])].filter(Boolean).reduce((a, item) => ({
+        protein: a.protein + (item.nutrition?.protein || 0),
+        cal: a.cal + (item.cal || 0),
+      }), acc);
+    }, { protein: 0, cal: 0 });
+
+    const totalCal = dayNutri.cal || 1;
+    const proteinKcal = dayNutri.protein * 4;
+    const proteinPct = Math.round(proteinKcal / totalCal * 100);
+    const fatPct = Math.round((totalCal - proteinKcal) * 0.27 / totalCal * 100);
+    const carbsPct = Math.max(0, 100 - proteinPct - fatPct);
+
+    let ageLabel = "";
+    const fp = profiles[0];
+    if (fp) {
+      const age = calcAgeFromBirth(fp.birthYear, fp.birthMonth);
+      if (age !== null) {
+        const ag = ageGroupFromAge(age);
+        const agObj = AGE_GROUPS.find(g => g.id === ag);
+        ageLabel = agObj ? `${agObj.label} ${age}세` : `만 ${age}세`;
+      }
+    }
+
+    const dateObj = getDateForDay(activeDay);
+    const dateStr = `${dateObj.getMonth() + 1}.${dateObj.getDate()}(${DAY_KOR[dateObj.getDay()]})`;
+    const headerRight = ageLabel ? `${dateStr} · ${ageLabel}` : dateStr;
+
+    const card = document.createElement('div');
+    card.style.cssText = [
+      'width:375px', 'background:#FFF4ED', 'padding:20px', 'border-radius:16px',
+      'position:fixed', 'left:-9999px', 'top:0',
+      "font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif",
+      'box-sizing:border-box',
+    ].join(';');
+
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center';
+    const hL = document.createElement('span');
+    hL.style.cssText = 'font-size:14px;color:#712B13;font-weight:500';
+    hL.textContent = '오늘의 우리아이 식단';
+    const hR = document.createElement('span');
+    hR.style.cssText = 'font-size:11px;color:#993C1D';
+    hR.textContent = headerRight;
+    hdr.appendChild(hL);
+    hdr.appendChild(hR);
+    card.appendChild(hdr);
+
+    const divider = document.createElement('div');
+    divider.style.cssText = 'height:1px;background:#F5C4B3;margin:10px 0';
+    card.appendChild(divider);
+
+    const mealsValid = mealsInPlan.filter(m => weekPlan[activeDay]?.[m]);
+    mealsValid.forEach((m, idx) => {
+      const meal = weekPlan[activeDay][m];
+      const names = [meal.rice, meal.soup, ...(meal.sides || [])].filter(Boolean).map(i => i.name).join(' · ');
+      const row = document.createElement('div');
+      row.style.cssText = `display:flex;align-items:flex-start;padding:7px 0${idx < mealsValid.length - 1 ? ';border-bottom:0.5px solid #F5C4B3' : ''}`;
+      const lbl = document.createElement('div');
+      lbl.style.cssText = 'width:52px;flex-shrink:0;font-size:10px;color:#993C1D;font-weight:500;padding-top:1px';
+      lbl.textContent = m;
+      const mn = document.createElement('div');
+      mn.style.cssText = 'font-size:11px;color:#4A1B0C;line-height:1.6;flex:1';
+      mn.textContent = names;
+      row.appendChild(lbl);
+      row.appendChild(mn);
+      card.appendChild(row);
+    });
+
+    const ftr = document.createElement('div');
+    ftr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-top:12px';
+    const chipsEl = document.createElement('div');
+    chipsEl.style.cssText = 'display:flex;gap:4px';
+    [['탄', carbsPct], ['단', proteinPct], ['지', fatPct]].forEach(([label, pct]) => {
+      const chip = document.createElement('span');
+      chip.style.cssText = 'background:#F5C4B3;color:#712B13;font-size:9px;padding:2px 6px;border-radius:20px';
+      chip.textContent = `${label} ${pct}%`;
+      chipsEl.appendChild(chip);
+    });
+    const wm = document.createElement('span');
+    wm.style.cssText = 'font-size:9px;color:#D85A30;opacity:0.8';
+    wm.textContent = 'mealplanner365.co.kr';
+    ftr.appendChild(chipsEl);
+    ftr.appendChild(wm);
+    card.appendChild(ftr);
+
+    document.body.appendChild(card);
+
+    const filename = `식단표_${formatDateFile(getDateForDay(activeDay))}_${activeDay}.png`;
+
+    let canvas;
+    try {
+      const { default: html2canvas } = await import("html2canvas");
+      canvas = await html2canvas(card, { scale: 3, useCORS: true, backgroundColor: '#FFF4ED' });
+    } catch (err) {
+      console.error("html2canvas failed:", err);
+      gaEvent('save_image_error', { view: 'share_card', reason: err?.message?.substring(0, 100) || 'canvas_error', is_ios: isIOS, stage: 'canvas' });
+      alert("이미지 생성에 실패했어요. 다시 시도해주세요.");
+      document.body.removeChild(card);
+      return;
+    }
+
+    document.body.removeChild(card);
+
+    if (isIOS) {
+      try {
+        const win = window.open();
+        if (!win) {
+          gaEvent('save_image_error', { view: 'share_card', reason: 'popup_blocked', is_ios: true, stage: 'legacy_popup' });
+          alert("팝업이 차단되어 저장할 수 없어요. 팝업 허용 후 다시 시도해주세요.");
+          return;
+        }
+        const dataUrl = canvas.toDataURL('image/png');
+        win.document.write(`<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>우리 아이 식단표 - 길게 눌러 저장</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; padding: 0; }
+    .guide { position: sticky; top: 0; background: #FFF4ED; padding: 16px; text-align: center; font-size: 15px; font-weight: 700; color: #6B2F0A; border-bottom: 1px solid #FFD9C0; z-index: 10; }
+    .img-wrap { padding: 16px; text-align: center; }
+    img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .hint { padding: 16px; text-align: center; font-size: 12px; color: #888; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="guide">📸 이미지를 길게 눌러<br>"사진에 저장"을 선택하세요</div>
+  <div class="img-wrap"><img src="${dataUrl}" alt="우리 아이 식단표"></div>
+  <div class="hint">💡 메뉴가 안 뜨면 화면을 캡처(스크린샷)해도 됩니다</div>
+</body>
+</html>`);
+        win.document.close();
+        gaEvent('save_image', { view: 'share_card', method: 'ios_legacy' });
+      } catch (err) {
+        console.error("iOS legacy save failed:", err);
+        gaEvent('save_image_error', { view: 'share_card', reason: err.message?.substring(0, 100) || 'legacy_failed', is_ios: true, stage: 'legacy' });
+        alert("이미지 저장에 실패했어요. 다시 시도해주세요.");
+      }
+      return;
+    }
+
+    try {
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      gaEvent('save_image', { view: 'share_card', method: 'download' });
+    } catch (err) {
+      console.error("Download failed:", err);
+      gaEvent('save_image_error', { view: 'share_card', reason: err.message?.substring(0, 100), is_ios: false, stage: 'download' });
+      alert("이미지 저장에 실패했어요. 다시 시도해주세요.");
+    }
+  };
+
   useEffect(() => {
     if (window.Kakao && !window.Kakao.isInitialized()) {
       window.Kakao.init('b6e09cf5c3a307c2db30c02d06258e2c');
@@ -1377,7 +1541,7 @@ export default function MealPlanner() {
                       style={{ flex: 1, padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "#fff", color: "#ff6b6b", border: "2px solid #ff6b6b", cursor: "pointer", fontFamily: "inherit" }}>
                       🔄 오늘 다시 뽑기
                     </button>
-                    <button onClick={() => handleSaveImage(dailySaveRef, `식단표_${formatDateFile(getDateForDay(activeDay))}_${activeDay}.png`)}
+                    <button onClick={handleSaveDailyCard}
                       style={{ flex: 1, padding: "13px", borderRadius: 14, fontSize: 13, fontWeight: 700, background: "linear-gradient(90deg,#ff6b6b,#ff8e53)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 12px rgba(255,107,107,0.3)" }}>
                       📸 오늘 식단 저장
                     </button>
