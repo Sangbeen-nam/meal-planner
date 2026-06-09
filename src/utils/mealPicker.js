@@ -2,6 +2,7 @@ import { AGE_ORDER, DAYS, MEALS } from "../data/constants";
 import { RICE_DB } from "../data/riceDB";
 import { SOUP_DB } from "../data/soupDB";
 import { SIDE_DB } from "../data/sideDB";
+import { SNACK_DB } from "../data/snackDB";
 
 export function getMinAgeIndex(ids) {
   if (!ids || ids.length === 0) return 0;
@@ -95,7 +96,7 @@ function getRecentHistory(plan, currentDay, days = 3) {
     if (!plan[d]) return;
     Object.values(plan[d]).forEach(meal => {
       if (!meal) return;
-      [meal.rice, meal.soup, ...(meal.sides || [])].filter(Boolean).forEach(item => {
+      [meal.rice, meal.soup, ...(meal.sides || []), meal.snack].filter(Boolean).forEach(item => {
         recentNames.push(item.name);
         (item.ingredients || []).forEach(ing => recentIngreds.push(ing));
       });
@@ -108,7 +109,7 @@ export function generateWeekPlan(prefs, ingreds, selectedAgeIds = [], allergenIn
   const minAgeIndex = getMinAgeIndex(selectedAgeIds);
   const mealsToGen = selectedMeals.length > 0 ? selectedMeals : MEALS;
   const plan = {};
-  const usedRice = [], usedSoup = [], usedSides = [];
+  const usedRice = [], usedSoup = [], usedSides = [], usedSnack = [];
 
   DAYS.forEach(day => {
     plan[day] = {};
@@ -116,6 +117,12 @@ export function generateWeekPlan(prefs, ingreds, selectedAgeIds = [], allergenIn
     const { recentNames, recentIngreds } = getRecentHistory(plan, day, 3);
 
     mealsToGen.forEach(m => {
+      if (m === "간식") {
+        const snack = pickOne(SNACK_DB, prefs, ingreds, usedSnack, minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds, m);
+        usedSnack.push(snack.name);
+        plan[day][m] = { snack };
+        return;
+      }
       const rice  = pickOne(RICE_DB, prefs, ingreds, usedRice,  minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds, m);
       const soup  = pickOne(SOUP_DB, prefs, ingreds, usedSoup,  minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds, m);
       const sides = pickTwoSides(prefs, ingreds, usedSides, minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds, m);
@@ -148,6 +155,8 @@ export function handleReplaceItem(prev, activeDay, activeMeal, type, prefs, ingr
     const baseDb = activeMeal === "아침" ? SIDE_DB.filter(s => s.breakfast !== false) : SIDE_DB;
     const db = baseDb.filter(s => s.nutriType === "채소");
     meal.sides[1] = pickOne(db, prefs, ingreds, [meal.sides[1]?.name], minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds) || meal.sides[1];
+  } else if (type === "snack") {
+    meal.snack = pickOne(SNACK_DB, prefs, ingreds, [meal.snack?.name], minAgeIndex, allergenIngreds, avoidedIngreds, recentNames, recentIngreds, activeMeal);
   }
   return next;
 }

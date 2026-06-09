@@ -6,6 +6,7 @@ import { calcMealGoal, fmtN } from "./utils/nutrition";
 import { getMinAgeIndex, generateWeekPlan, pickOne, pickTwoSides, handleReplaceItem } from "./utils/mealPicker";
 import { RICE_DB } from "./data/riceDB";
 import { SOUP_DB } from "./data/soupDB";
+import { SNACK_DB } from "./data/snackDB";
 import { NutriBar } from "./components/NutriBar";
 import { MealItemCard } from "./components/MealItemCard";
 import { RecipeView } from "./components/RecipeView";
@@ -136,6 +137,7 @@ const MEAL_INFO = {
   "아침": { icon: "🌅", bg: "#fffbeb", badge: "#fde68a", text: "#92400e" },
   "점심": { icon: "☀️", bg: "#f0fdf4", badge: "#bbf7d0", text: "#14532d" },
   "저녁": { icon: "🌙", bg: "#eff6ff", badge: "#bfdbfe", text: "#1e3a8a" },
+  "간식": { icon: "🍎", bg: "#EAF3DE", badge: "#c6e8c6", text: "#2d6a3f" },
 };
 
 const DAY_DOW = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:0 };
@@ -379,7 +381,7 @@ export default function MealPlanner() {
     const dayNutri = mealsInPlan.reduce((acc, m) => {
       const meal = weekPlan[activeDay]?.[m];
       if (!meal) return acc;
-      return [meal.rice, meal.soup, ...(meal.sides || [])].filter(Boolean).reduce((a, item) => ({
+      return [meal.rice, meal.soup, ...(meal.sides || []), meal.snack].filter(Boolean).reduce((a, item) => ({
         protein: a.protein + (item.nutrition?.protein || 0),
         cal: a.cal + (item.cal || 0),
       }), acc);
@@ -437,7 +439,9 @@ export default function MealPlanner() {
     const mealsValid = mealsInPlan.filter(m => weekPlan[activeDay]?.[m]);
     mealsValid.forEach((m, idx) => {
       const meal = weekPlan[activeDay][m];
-      const names = [meal.rice, meal.soup, ...(meal.sides || [])].filter(Boolean).map(i => i.name).join(' · ');
+      const names = m === "간식"
+        ? (meal.snack?.name || "")
+        : [meal.rice, meal.soup, ...(meal.sides || [])].filter(Boolean).map(i => i.name).join(' · ');
       const row = document.createElement('div');
       row.style.cssText = `display:flex;align-items:flex-start;padding:7px 0${idx < mealsValid.length - 1 ? ';border-bottom:0.5px solid #F5C4B3' : ''}`;
       const lbl = document.createElement('div');
@@ -591,6 +595,10 @@ export default function MealPlanner() {
       const next = JSON.parse(JSON.stringify(prev));
       mealsInPlan.forEach(m => {
         if (!next[activeDay][m]) return;
+        if (m === "간식") {
+          next[activeDay][m] = { snack: pickOne(SNACK_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds) };
+          return;
+        }
         const rice  = pickOne(RICE_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
         const soup  = pickOne(SOUP_DB, selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
         const sides = pickTwoSides(selectedFoods, selectedIngreds, [], minAgeIndex, allergenIngredients, avoidedIngreds);
@@ -937,7 +945,8 @@ export default function MealPlanner() {
           mealsInPlan.flatMap(m =>
             [weekPlan[activeDay]?.[m]?.rice,
              weekPlan[activeDay]?.[m]?.soup,
-             ...(weekPlan[activeDay]?.[m]?.sides || [])]
+             ...(weekPlan[activeDay]?.[m]?.sides || []),
+             weekPlan[activeDay]?.[m]?.snack]
             .filter(Boolean).flatMap(i => i.ingredients || [])
           )
         )]
@@ -946,7 +955,8 @@ export default function MealPlanner() {
             mealsInPlan.flatMap(m =>
               [weekPlan[d]?.[m]?.rice,
                weekPlan[d]?.[m]?.soup,
-               ...(weekPlan[d]?.[m]?.sides || [])]
+               ...(weekPlan[d]?.[m]?.sides || []),
+               weekPlan[d]?.[m]?.snack]
               .filter(Boolean).flatMap(i => i.ingredients || [])
             )
           )
@@ -1431,7 +1441,7 @@ export default function MealPlanner() {
           const dailyNutri = mealsInPlan.reduce((acc, m) => {
             const meal = weekPlan[activeDay]?.[m];
             if (!meal) return acc;
-            return [meal.rice, meal.soup, ...meal.sides].filter(Boolean).reduce((a, item) => ({
+            return [meal.rice, meal.soup, ...(meal.sides || []), meal.snack].filter(Boolean).reduce((a, item) => ({
               protein: a.protein + (item.nutrition?.protein || 0),
               calcium: a.calcium + (item.nutrition?.calcium || 0),
               iron:    a.iron    + (item.nutrition?.iron    || 0),
@@ -1479,13 +1489,18 @@ export default function MealPlanner() {
                       const meal = weekPlan[activeDay]?.[m];
                       if (!meal) return null;
                       const mStyle = ms(m);
-                      const mealCal = [meal.rice, meal.soup, ...meal.sides].filter(Boolean)
-                        .reduce((acc, item) => acc + (item.cal || 0), 0);
-                      const items = [
-                        { emoji: "🍚", label: "밥",    item: meal.rice,  type: "rice" },
-                        { emoji: "🍲", label: "국",    item: meal.soup,  type: "soup" },
-                        ...meal.sides.map((s, i) => ({ emoji: "🥗", label: `반찬${i + 1}`, item: s, type: `side${i}` })),
-                      ];
+                      const isSnack = m === "간식";
+                      const mealCal = isSnack
+                        ? (meal.snack?.cal || 0)
+                        : [meal.rice, meal.soup, ...(meal.sides || [])].filter(Boolean)
+                            .reduce((acc, item) => acc + (item.cal || 0), 0);
+                      const items = isSnack
+                        ? [{ emoji: "🍎", label: "간식", item: meal.snack, type: "snack" }]
+                        : [
+                            { emoji: "🍚", label: "밥",    item: meal.rice,  type: "rice" },
+                            { emoji: "🍲", label: "국",    item: meal.soup,  type: "soup" },
+                            ...meal.sides.map((s, i) => ({ emoji: "🥗", label: `반찬${i + 1}`, item: s, type: `side${i}` })),
+                          ];
                       return (
                         <div key={m} style={{ background: mStyle.bg, borderRadius: 14, padding: "13px 14px", marginBottom: 12, border: `1px solid ${mStyle.text}22` }}>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
@@ -1588,7 +1603,7 @@ export default function MealPlanner() {
                               return (
                                 <div key={m} style={{ marginBottom: 8 }}>
                                   <div style={{ fontSize: 12, fontWeight: 700, color: mStyle.text, marginBottom: 3 }}>{mStyle.icon} {m}</div>
-                                  {[meal.rice, meal.soup, ...meal.sides].filter(Boolean).map(item => (
+                                  {[meal.rice, meal.soup, ...(meal.sides || []), meal.snack].filter(Boolean).map(item => (
                                     <div key={item.name} style={{ fontSize: 12, color: "#444", lineHeight: 1.6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                       · {item.name}
                                     </div>

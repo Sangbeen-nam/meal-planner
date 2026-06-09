@@ -1,7 +1,14 @@
 export const SHOW_COUPANG = true;  // 쿠팡 파트너스 노출 토글. 애드센스 재심사 때 false로 변경 후 통과 시 true로 복구.
 
 export const DAYS = ["월","화","수","목","금","토","일"];
-export const MEALS = ["아침","점심","저녁"];
+export const MEALS = ["아침","점심","저녁","간식"];
+
+export const MEAL_INFO = {
+  "아침": { emoji: "🌅", label: "아침", color: "#92400e", bg: "#fffbeb" },
+  "점심": { emoji: "☀️", label: "점심", color: "#14532d", bg: "#f0fdf4" },
+  "저녁": { emoji: "🌙", label: "저녁", color: "#1e3a8a", bg: "#eff6ff" },
+  "간식": { emoji: "🍎", label: "간식", color: "#2d6a3f", bg: "#EAF3DE" },
+};
 
 export const FOOD_PREFS = [
   {id:"한식",e:"🍚"},{id:"일식",e:"🍣"},{id:"중식",e:"🥟"},{id:"분식",e:"🥙"},
